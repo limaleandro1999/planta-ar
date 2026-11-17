@@ -4,11 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <meta name="theme-color" content="#0a0f1c">
-<title>Planta AR — Scanner de cômodos</title>
+<title>Planta AR — Scanner automático de cômodos</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%233be8b0'/%3E%3Cpath d='M8 9h16v14H8z' fill='none' stroke='%2304261b' stroke-width='3'/%3E%3C/svg%3E">
 <style>
 :root{
   --bg:#0a0f1c;--panel:#111a2e;--panel2:#17223b;--line:#243251;--text:#e8eefc;--muted:#8d9cbf;
-  --acc:#3be8b0;--acc-d:#1fb98a;--acc2:#ffb547;--danger:#ff6b6b;
+  --acc:#3be8b0;--acc-d:#1fb98a;--acc2:#ffb547;--vio:#c4b5fd;--danger:#ff6b6b;
   --sat:env(safe-area-inset-top,0px);--sab:env(safe-area-inset-bottom,0px);
   --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
 }
@@ -21,7 +22,6 @@ input{font:inherit;color:inherit}
 .screen{position:fixed;inset:0;display:none}
 .screen.active{display:flex}
 
-/* ---------- botões ---------- */
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 18px;border-radius:14px;
   background:var(--panel2);border:1px solid var(--line);font-weight:600;transition:transform .08s,background .2s}
 .btn:active{transform:scale(.97)}
@@ -30,9 +30,9 @@ input{font:inherit;color:inherit}
 .btn.warn{background:var(--acc2);color:#2e1c00;border-color:transparent}
 .btn.danger{color:var(--danger)}
 .btn.sm{padding:8px 12px;border-radius:10px;font-size:13px}
-.btn:disabled{opacity:.5}
+.btn:disabled{opacity:.55}
 
-/* ---------- home ---------- */
+/* home */
 #home{flex-direction:column;align-items:center;overflow-y:auto;padding:calc(28px + var(--sat)) 20px calc(28px + var(--sab))}
 .home-wrap{width:100%;max-width:520px;display:flex;flex-direction:column;gap:18px}
 .logo{display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:.3px;font-size:18px}
@@ -43,41 +43,51 @@ h1 em{font-style:normal;color:var(--acc)}
 .lead{color:var(--muted);margin:0}
 .hero{background:radial-gradient(120% 90% at 30% 10%,#13284a 0,#0d1628 60%);border:1px solid var(--line);border-radius:22px;padding:14px;aspect-ratio:16/10}
 .hero svg{width:100%;height:100%}
-.hero .draw{stroke-dasharray:60;stroke-dashoffset:60;animation:draw 2.8s ease forwards infinite}
+.hero .draw{stroke-dasharray:60;stroke-dashoffset:60;animation:draw 3.2s ease forwards infinite}
 @keyframes draw{0%{stroke-dashoffset:60}55%,100%{stroke-dashoffset:0}}
+.hero .scanline{animation:sweep 3.2s linear infinite}
+@keyframes sweep{0%{transform:translateX(0)}100%{transform:translateX(150px)}}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:16px}
 .card h3{margin:0 0 10px;font-size:14px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted)}
 .steps{margin:0;padding:0;list-style:none;display:grid;gap:10px;counter-reset:s}
 .steps li{display:grid;grid-template-columns:28px 1fr;gap:10px;align-items:start;counter-increment:s}
 .steps li::before{content:counter(s);width:28px;height:28px;border-radius:50%;background:var(--panel2);border:1px solid var(--line);
   display:grid;place-items:center;font-weight:700;font-size:13px;color:var(--acc)}
-.field{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 0}
+.field{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0}
 .field+.field{border-top:1px solid var(--line)}
 .field small{display:block;color:var(--muted);font-size:12px}
 .num{width:92px;padding:9px 10px;border-radius:10px;border:1px solid var(--line);background:var(--bg);text-align:right;font-family:var(--mono)}
 .switch{appearance:none;width:46px;height:28px;border-radius:20px;background:#2a3a55;position:relative;cursor:pointer;flex:none}
 .switch::after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;transition:.2s}
 .switch:checked{background:var(--acc-d)}.switch:checked::after{left:21px}
-.device{display:flex;gap:10px;align-items:center;font-size:14px}
-.dot{width:10px;height:10px;border-radius:50%;flex:none;background:var(--acc);box-shadow:0 0 0 4px rgba(59,232,176,.15)}
+.segc{display:flex;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:3px;flex:none}
+.segc button{padding:7px 11px;border-radius:9px;font-weight:700;font-size:13px;color:var(--muted)}
+.segc button.on{background:var(--acc);color:#04261b}
+.device{display:flex;gap:10px;align-items:flex-start;font-size:14px}
+.dot{width:10px;height:10px;border-radius:50%;flex:none;margin-top:5px;background:var(--acc);box-shadow:0 0 0 4px rgba(59,232,176,.15)}
 .dot.mid{background:var(--acc2);box-shadow:0 0 0 4px rgba(255,181,71,.15)}
 .dot.bad{background:var(--danger);box-shadow:0 0 0 4px rgba(255,107,107,.15)}
 .cta{display:grid;gap:10px}
 .cta .btn{padding:16px;font-size:16px}
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.tags span{font-size:12px;padding:4px 9px;border-radius:999px;background:var(--panel2);border:1px solid var(--line)}
+.tags span i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:0}
 
-/* ---------- scan ---------- */
+/* scan */
 #scan{background:#000}
 body.xr-on #scan,body.xr-on{background:transparent!important}
-#video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+#video,#simbg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 body.xr-on #video{display:none}
 #overlay{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
 #xrgl{display:none}
 .scan-top{position:absolute;left:0;right:0;top:0;padding:calc(10px + var(--sat)) 12px 30px;display:flex;align-items:center;gap:8px;
   background:linear-gradient(#000a,#0000)}
 .icon-btn{width:42px;height:42px;border-radius:50%;background:#0009;border:1px solid #ffffff22;display:grid;place-items:center;font-size:18px;flex:none}
+.icon-btn.on{background:var(--acc);color:#04261b}
 .room-name{flex:1;min-width:0;background:#0009;border:1px solid #ffffff22;border-radius:12px;padding:10px 12px;font-weight:700}
 .badge{font-size:11px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;padding:6px 9px;border-radius:8px;background:var(--acc);color:#04261b;flex:none}
 .badge.sensor{background:var(--acc2);color:#2e1c00}
+.badge.sim{background:var(--vio);color:#1c1240}
 .hint{position:absolute;left:50%;transform:translateX(-50%);top:calc(70px + var(--sat));width:min(92%,460px);text-align:center;
   background:#000b;border:1px solid #ffffff1c;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
   padding:10px 14px;border-radius:14px;font-size:14px}
@@ -85,43 +95,48 @@ body.xr-on #video{display:none}
 .cross::before,.cross::after{content:"";position:absolute;background:#fff;box-shadow:0 0 4px #000}
 .cross::before{left:16px;top:0;width:2px;height:34px}.cross::after{top:16px;left:0;height:2px;width:34px}
 .scan-bottom{position:absolute;left:0;right:0;bottom:0;padding:40px 14px calc(16px + var(--sab));background:linear-gradient(#0000,#000c)}
-.readout{display:flex;justify-content:center;gap:16px;font-family:var(--mono);font-size:13px;margin-bottom:12px;flex-wrap:wrap}
-.readout span{background:#000a;border:1px solid #ffffff1c;padding:5px 10px;border-radius:8px}
+.readout{display:flex;justify-content:center;gap:8px;font-family:var(--mono);font-size:12.5px;margin-bottom:10px;flex-wrap:wrap}
+.readout span{background:#000a;border:1px solid #ffffff1c;padding:5px 9px;border-radius:8px}
 .readout b{color:var(--acc)}
+.covbar{height:6px;border-radius:4px;background:#ffffff1f;overflow:hidden;max-width:520px;margin:0 auto 10px}
+.covbar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--acc2),var(--acc));transition:width .4s}
+.counter{text-align:center;font-family:var(--mono);font-size:11px;color:#ffffffb0;margin-bottom:8px}
+.counter b{font-weight:400}
 .scan-row{display:grid;grid-template-columns:1fr 1.5fr 1fr;gap:10px;max-width:520px;margin:0 auto}
 .scan-row .btn{padding:14px 6px;background:#000a;border-color:#ffffff26;font-size:13px}
-.scan-row .btn.primary{background:var(--acc);font-size:16px}
+.scan-row .btn.primary{background:var(--acc);font-size:15px}
 .scan-row .btn.warn{background:var(--acc2)}
-.counter{text-align:center;font-family:var(--mono);font-size:11px;color:#ffffffaa;margin-bottom:8px}
 .sheet{position:absolute;left:0;right:0;bottom:0;background:var(--panel);border-top:1px solid var(--line);border-radius:22px 22px 0 0;
   padding:20px 18px calc(18px + var(--sab));box-shadow:0 -10px 40px #0008;animation:up .25s ease}
 @keyframes up{from{transform:translateY(40px);opacity:0}}
 .sheet h2{margin:0 0 4px;font-size:20px}
 .sheet p{margin:0 0 14px;color:var(--muted)}
-.sheet .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.mini-stats{display:flex;gap:10px;margin:0 0 16px}
-.mini-stats div{flex:1;background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:10px}
-.mini-stats small{display:block;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.6px}
-.mini-stats b{font-family:var(--mono);font-size:17px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.mini-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:0 0 16px}
+.mini-stats div{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:9px}
+.mini-stats small{display:block;color:var(--muted);font-size:10.5px;text-transform:uppercase;letter-spacing:.6px}
+.mini-stats b{font-family:var(--mono);font-size:15px;white-space:nowrap}
 .center-card{position:absolute;inset:0;display:grid;place-items:center;padding:20px;background:#000c}
 .center-card .card{max-width:420px;width:100%}
 .center-card p{color:var(--muted);margin:0 0 14px}
 .center-card h2{margin:0 0 8px;font-size:20px}
+.bar{height:8px;background:var(--panel2);border-radius:5px;overflow:hidden;margin:6px 0 14px}
+.bar i{display:block;height:100%;width:0;background:var(--acc);transition:width .3s}
 
-/* ---------- plan ---------- */
+/* plan */
 #plan{flex-direction:column;background:var(--bg)}
 .plan-head{display:flex;align-items:center;gap:8px;padding:calc(10px + var(--sat)) 12px 10px;border-bottom:1px solid var(--line);background:var(--panel)}
-.plan-head .title{font-weight:800;font-size:17px;margin-right:auto;display:flex;align-items:center;gap:8px}
+.plan-head .title{font-weight:800;font-size:17px;margin-right:auto}
 .tabs{display:flex;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:3px}
 .tabs button{padding:7px 14px;border-radius:9px;font-weight:700;font-size:13px;color:var(--muted)}
 .tabs button.on{background:var(--acc);color:#04261b}
 .plan-body{flex:1;min-height:0;display:grid;grid-template-rows:minmax(0,1fr) auto}
 .view{position:relative;min-height:0;overflow:hidden;background:#0c1426}
 #svg2d,#c3d{position:absolute;inset:0;width:100%;height:100%;touch-action:none;display:block}
-.view-tools{position:absolute;right:10px;top:10px;display:flex;flex-direction:column;gap:6px}
+.view-tools{position:absolute;right:10px;top:10px;display:flex;flex-direction:column;gap:6px;align-items:flex-end}
 .view-tools .btn{background:#0d1628e6}
 .empty{position:absolute;inset:0;display:grid;place-items:center;text-align:center;color:var(--muted);padding:30px}
-.view-hint{transition:opacity .6s;pointer-events:none;position:absolute;left:10px;top:10px;max-width:calc(100% - 130px);font-size:12px;color:var(--muted);background:#0d1628d9;padding:5px 9px;border-radius:8px}
+.view-hint{transition:opacity .6s;pointer-events:none;position:absolute;left:10px;top:10px;max-width:calc(100% - 150px);font-size:12px;color:var(--muted);background:#0d1628d9;padding:5px 9px;border-radius:8px}
 .side{background:var(--panel);border-top:1px solid var(--line);max-height:46vh;overflow-y:auto;padding:12px 14px calc(14px + var(--sab))}
 .chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:10px;scrollbar-width:none}
 .chips::-webkit-scrollbar{display:none}
@@ -129,39 +144,45 @@ body.xr-on #video{display:none}
 .chip i{width:10px;height:10px;border-radius:3px;display:block}
 .chip.on{border-color:var(--acc);box-shadow:0 0 0 1px var(--acc) inset}
 .chip.add{color:var(--acc)}
-.totals{display:flex;gap:14px;font-size:12px;color:var(--muted);margin:2px 0 12px;font-family:var(--mono)}
+.totals{display:flex;gap:14px;font-size:12px;color:var(--muted);margin:2px 0 12px;font-family:var(--mono);flex-wrap:wrap}
 .totals b{color:var(--text)}
-.det label.lbl{display:block;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin:0 0 6px}
+.det label.lbl{display:block;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin:14px 0 6px}
+.det label.lbl:first-child{margin-top:0}
 .name-in{width:100%;padding:12px;border-radius:12px;border:1px solid var(--line);background:var(--bg);font-weight:700;font-size:16px}
 .name-in:focus,.num:focus,.wall-in:focus{outline:2px solid var(--acc);outline-offset:-1px}
-.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:12px 0}
-.stats div{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:9px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:12px 0 0}
+.stats div{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:9px;min-width:0}
 .stats small{display:block;color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.6px}
 .stats b{font-family:var(--mono);font-size:13px;white-space:nowrap}
-.stats input{width:100%;background:transparent;border:0;font-family:var(--mono);font-weight:700;font-size:14px;padding:0;color:var(--acc)}
-.walls{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;margin-bottom:10px}
+.stats input{width:100%;background:transparent;border:0;font-family:var(--mono);font-weight:700;font-size:13px;padding:0;color:var(--acc)}
+.walls{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px}
 .wall{display:flex;align-items:center;gap:6px;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:6px 8px}
 .wall span{font-size:12px;color:var(--muted);font-weight:700;width:24px}
 .wall-in{width:100%;min-width:0;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:6px;font-family:var(--mono);text-align:right}
-.wall em{font-style:normal;font-size:12px;color:var(--muted)}
-.chk{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--muted);margin:4px 0 12px}
+.list{display:grid;gap:6px}
+.row{display:flex;align-items:center;gap:10px;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-size:13px}
+.row i{width:10px;height:10px;border-radius:3px;flex:none}
+.row span{flex:1;min-width:0}
+.row small{color:var(--muted);font-family:var(--mono);font-size:12px;white-space:nowrap}
+.row button{width:28px;height:28px;border-radius:8px;color:var(--muted);font-size:16px}
+.row button:hover{background:var(--line);color:var(--danger)}
+.chk{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--muted);margin:10px 0 12px}
 .actions{display:flex;gap:8px;flex-wrap:wrap}
 .note{font-size:12px;color:var(--muted);margin-top:10px}
 @media (min-width:900px){
   .plan-body{grid-template-columns:minmax(0,1fr) 380px;grid-template-rows:1fr}
   .side{max-height:none;border-top:0;border-left:1px solid var(--line)}
 }
-.menu{position:absolute;right:12px;top:calc(56px + var(--sat));background:var(--panel2);border:1px solid var(--line);border-radius:14px;padding:6px;z-index:20;min-width:220px;box-shadow:0 12px 30px #0009}
+.menu{position:absolute;right:12px;top:calc(56px + var(--sat));background:var(--panel2);border:1px solid var(--line);border-radius:14px;padding:6px;z-index:20;min-width:230px;box-shadow:0 12px 30px #0009}
 .menu button{display:block;width:100%;text-align:left;padding:10px 12px;border-radius:9px;font-size:14px}
 .menu button:hover{background:var(--line)}
 .menu hr{border:0;border-top:1px solid var(--line);margin:4px 0}
 
-/* ---------- modal / toast ---------- */
 .modal{position:fixed;inset:0;background:#000a;display:grid;place-items:center;z-index:50;padding:20px}
-.modal .card{max-width:380px;width:100%}
-.modal p{color:var(--muted);margin:6px 0 16px}
-.modal .row{display:flex;gap:10px;justify-content:flex-end}
-.toast{position:fixed;left:50%;bottom:calc(120px + var(--sab));transform:translateX(-50%);background:#000d;border:1px solid #ffffff2a;padding:10px 16px;border-radius:12px;
+.modal .card{max-width:400px;width:100%}
+.modal p{color:var(--muted);margin:6px 0 16px;white-space:pre-line}
+.modal .row2{display:flex;gap:10px;justify-content:flex-end}
+.toast{position:fixed;left:50%;bottom:calc(150px + var(--sab));transform:translateX(-50%);background:#000d;border:1px solid #ffffff2a;padding:10px 16px;border-radius:12px;
   z-index:60;font-size:14px;max-width:90%;text-align:center;transition:opacity .25s;opacity:0;pointer-events:none}
 .toast.show{opacity:1}
 textarea.json{width:100%;height:160px;background:var(--bg);color:var(--text);border:1px solid var(--line);border-radius:10px;font-family:var(--mono);font-size:11px;padding:8px}
@@ -173,25 +194,23 @@ textarea.json{width:100%;height:160px;background:var(--bg);color:var(--text);bor
 <section id="home" class="screen active">
   <div class="home-wrap">
     <div class="logo"><i></i>Planta AR</div>
-    <h1>Escaneie sua casa e gere a <em>planta 2D e 3D</em></h1>
-    <p class="lead">Aponte a câmera para os cantos de cada cômodo. O site desenha as paredes sobre a imagem enquanto você escaneia, calcula as medidas e monta a planta.</p>
+    <h1>Aponte a câmera. A IA <em>monta a planta</em> sozinha.</h1>
+    <p class="lead">Enquanto você mostra o cômodo, o app reconhece automaticamente o chão, as paredes, as portas e os móveis, desenha tudo sobre a imagem e gera a planta 2D e 3D com as medidas.</p>
 
     <div class="hero" aria-hidden="true">
       <svg viewBox="0 0 160 100" fill="none" stroke-linecap="round" stroke-linejoin="round">
-        <g stroke="#243251" stroke-width=".3">
-          <path d="M0 20H160M0 40H160M0 60H160M0 80H160M20 0V100M40 0V100M60 0V100M80 0V100M100 0V100M120 0V100M140 0V100"/>
-        </g>
+        <g stroke="#243251" stroke-width=".3"><path d="M0 20H160M0 40H160M0 60H160M0 80H160M20 0V100M40 0V100M60 0V100M80 0V100M100 0V100M120 0V100M140 0V100"/></g>
         <g stroke="#e8eefc" stroke-width="2.2">
           <path class="draw" pathLength="60" d="M18 14H92V54H18Z"/>
           <path class="draw" pathLength="60" d="M92 14H142V46H92" style="animation-delay:.25s"/>
           <path class="draw" pathLength="60" d="M18 54V88H70V54" style="animation-delay:.5s"/>
           <path class="draw" pathLength="60" d="M70 88H142V46" style="animation-delay:.75s"/>
         </g>
-        <g fill="#3be8b0" stroke="none">
-          <circle cx="18" cy="14" r="2.4"/><circle cx="92" cy="14" r="2.4"/><circle cx="142" cy="14" r="2.4"/><circle cx="142" cy="88" r="2.4"/><circle cx="18" cy="88" r="2.4"/>
-        </g>
+        <g stroke="#ffb547" stroke-width="2.4"><path d="M40 14H52"/><path d="M92 26V36"/></g>
+        <g fill="#c4b5fd" fill-opacity=".35" stroke="#c4b5fd" stroke-width=".8"><rect x="24" y="40" width="22" height="9" rx="1.5"/><rect x="104" y="58" width="22" height="24" rx="1.5"/><rect x="62" y="24" width="14" height="10" rx="1.5"/></g>
+        <rect class="scanline" x="-2" y="0" width="3" height="100" fill="#3be8b0" opacity=".35"/>
         <g fill="#8d9cbf" font-size="5" font-family="system-ui" text-anchor="middle" stroke="none">
-          <text x="55" y="36">Sala · 18,4 m²</text><text x="117" y="32">Cozinha</text><text x="44" y="73">Quarto</text><text x="106" y="70">Suíte</text>
+          <text x="55" y="22">Sala</text><text x="117" y="32">Cozinha</text><text x="44" y="73">Quarto</text><text x="115" y="54">Suíte</text>
         </g>
       </svg>
     </div>
@@ -202,39 +221,48 @@ textarea.json{width:100%;height:160px;background:var(--bg);color:var(--text);bor
     </div>
 
     <div class="cta">
-      <button class="btn primary" id="btnStart">📷 Iniciar scan</button>
+      <button class="btn primary" id="btnStart">📷 Escanear cômodos</button>
       <button class="btn hidden" id="btnContinue">Abrir projeto salvo</button>
-      <button class="btn" id="btnDemo">Ver exemplo de planta</button>
+      <button class="btn" id="btnSim">▶︎ Ver simulação do scan automático</button>
+      <button class="btn" id="btnDemo">Ver planta de exemplo</button>
     </div>
 
     <div class="card">
       <h3>Como funciona</h3>
       <ol class="steps">
-        <li><div><b>Permita a câmera.</b> O site pede acesso para mostrar a imagem ao vivo.</div></li>
-        <li><div><b>Marque os cantos do chão</b> de cada cômodo, seguindo as paredes. As linhas aparecem sobre a imagem para confirmar o que já foi escaneado.</div></li>
-        <li><div><b>Aponte para o teto</b> para medir o pé-direito (ou pule).</div></li>
-        <li><div><b>Veja a planta 2D e 3D</b>, renomeie os cômodos e ajuste medidas.</div></li>
+        <li><div><b>Permita a câmera.</b> Na primeira vez o app baixa a IA de reconhecimento (cerca de 4 a 15 MB). Ela roda no próprio celular: nenhuma imagem sai do aparelho.</div></li>
+        <li><div><b>Mostre o cômodo devagar</b>, com o celular um pouco inclinado para baixo. A IA encontra onde as paredes encontram o chão e desenha as paredes, portas e móveis sobre a imagem.</div></li>
+        <li><div><b>Toque em “Concluir cômodo”</b> quando a barra de cobertura encher e siga para o próximo.</div></li>
+        <li><div><b>Veja a planta 2D e 3D</b>, renomeie os cômodos e ajuste medidas se quiser.</div></li>
       </ol>
+      <div class="tags">
+        <span><i style="background:#3be8b0"></i>chão e paredes</span><span><i style="background:#ffb547"></i>portas e passagens</span><span><i style="background:#c4b5fd"></i>móveis e objetos</span><span><i style="background:#8fa8ff"></i>pé-direito</span>
+      </div>
     </div>
 
     <div class="card">
       <h3>Ajustes</h3>
       <div class="field">
+        <div>Modo de scan<small>Automático usa IA; manual = marcar cantos</small></div>
+        <div class="segc" id="setMode"><button data-v="auto">Automático</button><button data-v="manual">Manual</button></div>
+      </div>
+      <div class="field">
         <div>Altura do celular<small>Altura em que você segura o aparelho (modo sensores)</small></div>
-        <input class="num" id="setHeight" inputmode="decimal" value="140"><span style="color:var(--muted)">cm</span>
+        <div style="display:flex;align-items:center;gap:6px"><input class="num" id="setHeight" inputmode="decimal" value="140"><span style="color:var(--muted)">cm</span></div>
       </div>
       <div class="field" id="forceRow">
         <div>Usar modo sensores<small>Ignora o AR completo mesmo se disponível</small></div>
         <input type="checkbox" class="switch" id="setForce">
       </div>
     </div>
-    <p class="lead" style="font-size:12px;text-align:center">A câmera só funciona em página HTTPS. Os dados ficam salvos apenas neste aparelho.</p>
+    <p class="lead" style="font-size:12px;text-align:center">A câmera só funciona em página HTTPS. Os projetos ficam salvos apenas neste aparelho.</p>
   </div>
 </section>
 
 <!-- =============== SCAN =============== -->
 <section id="scan" class="screen">
   <video id="video" playsinline muted autoplay></video>
+  <canvas id="simbg" class="hidden"></canvas>
   <canvas id="overlay"></canvas>
   <canvas id="xrgl"></canvas>
   <div class="cross" id="cross"></div>
@@ -242,12 +270,15 @@ textarea.json{width:100%;height:160px;background:var(--bg);color:var(--text);bor
   <div class="scan-top">
     <button class="icon-btn" id="btnExit" aria-label="Sair">✕</button>
     <input class="room-name" id="roomName" aria-label="Nome do cômodo" maxlength="40">
+    <button class="icon-btn" id="btnSeg" aria-label="Mostrar o que a IA vê" title="Mostrar o que a IA vê">👁</button>
     <span class="badge" id="modeBadge">AR</span>
   </div>
   <div class="hint" id="hint"></div>
+
   <div class="scan-bottom" id="scanBottom">
     <div class="counter" id="counter"></div>
     <div class="readout" id="readout"></div>
+    <div class="covbar" id="covbar"><i></i></div>
     <div class="scan-row">
       <button class="btn" id="btnUndo">↶ Desfazer</button>
       <button class="btn primary" id="btnMark">Marcar canto</button>
@@ -257,11 +288,14 @@ textarea.json{width:100%;height:160px;background:var(--bg);color:var(--text);bor
 
   <div class="sheet hidden" id="roomDone">
     <h2 id="doneTitle">Cômodo salvo</h2>
-    <p>Siga para o próximo cômodo ou veja a planta.</p>
+    <p id="doneSub">Siga para o próximo cômodo ou veja a planta.</p>
     <div class="mini-stats">
       <div><small>Área</small><b id="doneArea">–</b></div>
       <div><small>Perímetro</small><b id="donePer">–</b></div>
       <div><small>Pé-direito</small><b id="doneH">–</b></div>
+      <div><small>Paredes</small><b id="doneW">–</b></div>
+      <div><small>Portas</small><b id="doneD">–</b></div>
+      <div><small>Móveis</small><b id="doneF">–</b></div>
     </div>
     <div class="grid2">
       <button class="btn" id="btnNext">+ Próximo cômodo</button>
@@ -277,13 +311,22 @@ textarea.json{width:100%;height:160px;background:var(--bg);color:var(--text);bor
     </div>
   </div>
 
+  <div class="center-card hidden" id="aiLoad">
+    <div class="card">
+      <h2 id="aiTitle">Preparando a IA</h2>
+      <p id="aiText">Baixando o modelo de reconhecimento de ambientes. Isso só acontece na primeira vez.</p>
+      <div class="bar"><i id="aiBar"></i></div>
+      <div class="grid2"><button class="btn" id="btnUseManual">Marcar cantos</button><button class="btn primary" id="btnRetryAI">Tentar de novo</button></div>
+    </div>
+  </div>
+
   <div class="center-card hidden" id="scanErr">
     <div class="card">
       <h2>Não foi possível escanear</h2>
       <p id="scanErrMsg"></p>
-      <div class="grid2" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div class="grid2">
         <button class="btn" id="btnErrBack">Voltar</button>
-        <button class="btn primary" id="btnErrDemo">Ver exemplo</button>
+        <button class="btn primary" id="btnErrSim">Ver simulação</button>
       </div>
     </div>
   </div>
@@ -311,11 +354,12 @@ textarea.json{width:100%;height:160px;background:var(--bg);color:var(--text);bor
     <div class="view" id="view">
       <svg id="svg2d" xmlns="http://www.w3.org/2000/svg"></svg>
       <canvas id="c3d" class="hidden"></canvas>
-      <div class="view-tools" id="tools3d">
+      <div class="view-tools">
+        <button class="btn sm" id="btnFurn">Móveis ✓</button>
         <button class="btn sm hidden" id="btnReset3d">Centralizar</button>
       </div>
-      <div class="view-hint" id="viewHint">Arraste um cômodo para posicioná-lo</div>
-      <div class="empty hidden" id="emptyPlan"><div><p>Nenhum cômodo escaneado ainda.</p><button class="btn primary" id="btnEmptyScan">📷 Iniciar scan</button></div></div>
+      <div class="view-hint" id="viewHint"></div>
+      <div class="empty hidden" id="emptyPlan"><div><p>Nenhum cômodo escaneado ainda.</p><button class="btn primary" id="btnEmptyScan">📷 Escanear</button></div></div>
     </div>
     <aside class="side">
       <div class="chips" id="chips"></div>
@@ -325,7 +369,7 @@ textarea.json{width:100%;height:160px;background:var(--bg);color:var(--text);bor
   </div>
 </section>
 
-<div class="modal hidden" id="modal"><div class="card"><h3 id="mTitle" style="margin:0;font-size:17px"></h3><p id="mText"></p><div id="mExtra"></div><div class="row" id="mRow"></div></div></div>
+<div class="modal hidden" id="modal"><div class="card"><h3 id="mTitle" style="margin:0;font-size:17px"></h3><p id="mText"></p><div id="mExtra"></div><div class="row2" id="mRow"></div></div></div>
 <div class="toast" id="toast"></div>
 
 <script>
@@ -350,6 +394,7 @@ const d2 = (a,b) => Math.hypot(a[0]-b[0], a[1]-b[1]);
 const dXZ = (a,b) => Math.hypot(a[0]-b[0], a[2]-b[2]);
 const parseNum = v => parseFloat(String(v).replace(',', '.'));
 const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const median = a => { if (!a.length) return null; const b = a.slice().sort((x,y)=>x-y); return b[b.length>>1]; };
 
 function rotX(d){const c=Math.cos(d*DEG),s=Math.sin(d*DEG);return [[1,0,0],[0,c,-s],[0,s,c]];}
 function rotY(d){const c=Math.cos(d*DEG),s=Math.sin(d*DEG);return [[c,0,s],[0,1,0],[-s,0,c]];}
@@ -387,22 +432,37 @@ function outwardNormal(p,i){
   if (pointInPoly(m,p)) n=[-n[0],-n[1]];
   return n;
 }
-function bbox(rooms){
-  let x0=Infinity,z0=Infinity,x1=-Infinity,z1=-Infinity;
-  rooms.forEach(r=>r.pts.forEach(([x,z])=>{x0=Math.min(x0,x);z0=Math.min(z0,z);x1=Math.max(x1,x);z1=Math.max(z1,z);}));
-  return {x0,z0,x1,z1,w:x1-x0,h:z1-z0,cx:(x0+x1)/2,cz:(z0+z1)/2};
+function bboxPts(pts){ let x0=Infinity,z0=Infinity,x1=-Infinity,z1=-Infinity; pts.forEach(([x,z])=>{x0=Math.min(x0,x);z0=Math.min(z0,z);x1=Math.max(x1,x);z1=Math.max(z1,z);}); return {x0,z0,x1,z1,w:x1-x0,h:z1-z0,cx:(x0+x1)/2,cz:(z0+z1)/2}; }
+function bbox(rooms){ return bboxPts(rooms.flatMap(r=>r.pts)); }
+function projOnSeg(p,a,b){ const dx=b[0]-a[0], dz=b[1]-a[1], L2=dx*dx+dz*dz||1e-9; const t=((p[0]-a[0])*dx+(p[1]-a[1])*dz)/L2; const tc=clamp(t,0,1); return {t, tc, d:Math.hypot(p[0]-(a[0]+dx*tc), p[1]-(a[1]+dz*tc)), L:Math.sqrt(L2)}; }
+function distToPoly(p,poly){ let m=Infinity; for(let i=0;i<poly.length;i++) m=Math.min(m, projOnSeg(p,poly[i],poly[(i+1)%poly.length]).d); return m; }
+function segIntersect(p1,p2,a,b){
+  const rx=p2[0]-p1[0], rz=p2[1]-p1[1], sx=b[0]-a[0], sz=b[1]-a[1], den=rx*sz-rz*sx;
+  if (Math.abs(den)<1e-12) return null;
+  const qx=a[0]-p1[0], qz=a[1]-p1[1], t=(qx*sz-qz*sx)/den, s=(qx*rz-qz*rx)/den;
+  return (t<0||t>1||s<0||s>1) ? null : {t,s};
 }
 function intersectLines(L1,L2){
   const den=L1.d[0]*L2.d[1]-L1.d[1]*L2.d[0];
   if(Math.abs(den)<1e-6) return null;
-  const dx=L2.m[0]-L1.m[0], dy=L2.m[1]-L1.m[1];
-  const t=(dx*L2.d[1]-dy*L2.d[0])/den;
+  const dx=L2.m[0]-L1.m[0], dy=L2.m[1]-L1.m[1], t=(dx*L2.d[1]-dy*L2.d[0])/den;
   return [L1.m[0]+L1.d[0]*t, L1.m[1]+L1.d[1]*t];
 }
-/* Esquadreja: deixa as paredes em ângulos de 90° em relação à parede mais longa */
+function simplifyCollinear(p){
+  let out = p.slice(), changed = true;
+  while (changed && out.length > 3) {
+    changed = false;
+    for (let i=0;i<out.length;i++){
+      const a=out[(i-1+out.length)%out.length], b=out[i], c=out[(i+1)%out.length];
+      const cr = (b[0]-a[0])*(c[1]-b[1]) - (b[1]-a[1])*(c[0]-b[0]);
+      if (Math.abs(cr) < 1e-6 * (d2(a,b)+d2(b,c)+1e-9) || d2(a,b) < 1e-6) { out.splice(i,1); changed=true; break; }
+    }
+  }
+  return out;
+}
+/* Esquadreja: paredes em ângulos de 90° em relação à mais longa */
 function squarePoly(src){
-  let p = src.map(q=>q.slice());
-  let maxDev = 0;
+  let p = src.map(q=>q.slice()), maxDev = 0;
   for (let pass=0; pass<3; pass++){
     const n=p.length; if(n<3) return {pts:src, maxDev:99};
     let best=0, th0=0;
@@ -411,34 +471,85 @@ function squarePoly(src){
     for(let i=0;i<n;i++){
       const a=p[i],b=p[(i+1)%n],th=Math.atan2(b[1]-a[1],b[0]-a[0]);
       const k=Math.round((th-th0)/(Math.PI/2)), ths=th0+k*Math.PI/2;
-      let dev=Math.abs(th-ths); maxDev=Math.max(maxDev,dev);
-      ks.push(((k%4)+4)%4);
+      maxDev=Math.max(maxDev,Math.abs(th-ths)); ks.push(((k%4)+4)%4);
       lines.push({m:[(a[0]+b[0])/2,(a[1]+b[1])/2], d:[Math.cos(ths),Math.sin(ths)]});
     }
-    // remove vértices entre paredes paralelas (colineares ou "dente")
     const keep=[]; for(let i=0;i<n;i++){ const kp=ks[(i-1+n)%n]; if(((kp-ks[i])%2+2)%2!==0) keep.push(i); }
     if (keep.length < n){ if(keep.length<3) return {pts:src,maxDev:99}; p = keep.map(i=>p[i]); continue; }
-    const out=[];
-    for(let i=0;i<n;i++){ const X=intersectLines(lines[(i-1+n)%n],lines[i]); out.push(X||p[i]); }
+    const out=[]; for(let i=0;i<n;i++){ const X=intersectLines(lines[(i-1+n)%n],lines[i]); out.push(X||p[i]); }
     return {pts:out, maxDev:maxDev/DEG};
   }
   return {pts:src, maxDev:99};
 }
-function rotateRoom(room, deg){
-  const c=centroid(room.pts), a=deg*DEG, cs=Math.cos(a), sn=Math.sin(a);
-  room.pts = room.pts.map(([x,z])=>{const dx=x-c[0],dz=z-c[1];return [c[0]+dx*cs-dz*sn, c[1]+dx*sn+dz*cs];});
+/* transformações que levam portas e móveis junto */
+function mapRoom(room, fn){ room.pts = room.pts.map(fn); (room.items||[]).forEach(it => it.pts = it.pts.map(fn)); }
+function translateRoom(room,dx,dz){ mapRoom(room, ([x,z])=>[x+dx, z+dz]); }
+function rotateRoom(room, deg){ const c=centroid(room.pts), a=deg*DEG, cs=Math.cos(a), sn=Math.sin(a); mapRoom(room, ([x,z])=>{const dx=x-c[0],dz=z-c[1];return [c[0]+dx*cs-dz*sn, c[1]+dx*sn+dz*cs];}); }
+function scaleRoom(room, f, c){ mapRoom(room, ([x,z])=>[c[0]+(x-c[0])*f, c[1]+(z-c[1])*f]); }
+function doorWorld(room, d){
+  const a=room.pts[d.i], b=room.pts[(d.i+1)%room.pts.length]; if (!a||!b) return null;
+  return [[a[0]+(b[0]-a[0])*d.t0, a[1]+(b[1]-a[1])*d.t0], [a[0]+(b[0]-a[0])*d.t1, a[1]+(b[1]-a[1])*d.t1]];
 }
-function scalePts(pts, f, c){ return pts.map(([x,z])=>[c[0]+(x-c[0])*f, c[1]+(z-c[1])*f]); }
-function translateRoom(room,dx,dz){ room.pts = room.pts.map(([x,z])=>[x+dx,z+dz]); }
+function attachDoor(poly, A, B, kind){
+  let best=null;
+  for (let i=0;i<poly.length;i++){ const a=poly[i], b=poly[(i+1)%poly.length], pa=projOnSeg(A,a,b), pb=projOnSeg(B,a,b), d=(pa.d+pb.d)/2;
+    if (!best || d<best.d) best={i, t0:Math.min(pa.tc,pb.tc), t1:Math.max(pa.tc,pb.tc), d}; }
+  if (!best || best.d>0.6 || best.t1-best.t0<0.02) return null;
+  return {i:best.i, t0:best.t0, t1:best.t1, kind};
+}
+
+/* =========================================================
+   Catálogo de objetos reconhecidos
+   ========================================================= */
+const DOOR_H = 2.10;
+const FURN = { // chave ADE20K: [nome, largura, profundidade, altura]
+  'bed':['Cama',1.9,1.4,0.55], 'sofa':['Sofá',2.0,0.9,0.85], 'armchair':['Poltrona',0.8,0.8,0.9], 'chair':['Cadeira',0.5,0.5,0.9],
+  'swivel chair':['Cadeira',0.6,0.6,1.0], 'seat':['Assento',0.5,0.5,0.5], 'stool':['Banqueta',0.4,0.4,0.6], 'bench':['Banco',1.2,0.4,0.45],
+  'ottoman':['Puff',0.5,0.5,0.4], 'table':['Mesa',1.2,0.8,0.75], 'coffee table':['Mesa de centro',1.0,0.6,0.45], 'desk':['Escrivaninha',1.2,0.6,0.75],
+  'kitchen island':['Ilha',1.6,0.9,0.9], 'pool table':['Mesa de sinuca',2.2,1.2,0.8], 'cabinet':['Armário',1.0,0.5,0.9], 'wardrobe':['Guarda-roupa',1.6,0.6,2.1],
+  'chest of drawers':['Cômoda',1.0,0.5,0.9], 'shelf':['Estante',1.0,0.35,1.8], 'bookcase':['Estante',1.0,0.35,1.9], 'buffet':['Aparador',1.4,0.45,0.85],
+  'counter':['Bancada',1.6,0.6,0.9], 'countertop':['Bancada',1.6,0.6,0.9], 'refrigerator':['Geladeira',0.7,0.7,1.8], 'stove':['Fogão',0.6,0.6,0.9],
+  'oven':['Forno',0.6,0.6,0.9], 'dishwasher':['Lava-louças',0.6,0.6,0.85], 'washer':['Máquina de lavar',0.6,0.6,0.85], 'sink':['Pia',0.6,0.5,0.85],
+  'toilet':['Vaso sanitário',0.4,0.7,0.75], 'bathtub':['Banheira',1.6,0.75,0.55], 'shower':['Box',0.9,0.9,2.0], 'plant':['Planta',0.4,0.4,0.9],
+  'lamp':['Luminária',0.4,0.4,1.5], 'box':['Caixa',0.5,0.5,0.4], 'television receiver':['TV',1.1,0.3,0.7], 'cradle':['Berço',1.2,0.65,0.9],
+  'fireplace':['Lareira',1.2,0.4,1.0], 'case':['Vitrine',1.0,0.45,1.6], 'basket':['Cesto',0.4,0.4,0.5], 'ashcan':['Lixeira',0.35,0.35,0.6]
+};
+const FURN_KEYS = Object.keys(FURN);
+const CAT = {OTHER:0, FLOOR:1, WALL:2, DOOR:3, CEIL:4, FURN:5, WIN:6};
+const ADE_CAT = { floor:1, rug:1, wall:2, column:2, curtain:2, blind:2, radiator:2, building:2, house:2, mirror:2, painting:2, 'bulletin board':2,
+                  windowpane:6, door:3, 'screen door':3, ceiling:4 };
+function catForLabel(name){
+  const n = String(name||'').split(',')[0].trim().toLowerCase();
+  if (n in ADE_CAT) return [ADE_CAT[n], 0];
+  const fi = FURN_KEYS.indexOf(n); if (fi>=0) return [CAT.FURN, fi+1];
+  return [0,0];
+}
+const FURN_COLORS = ['#c4b5fd','#a5b4fc','#f0abfc','#fda4af','#93c5fd','#fcd34d'];
+function furnColor(key){ let h=0; for (const c of String(key)) h=(h*31+c.charCodeAt(0))>>>0; return FURN_COLORS[h % FURN_COLORS.length]; }
 
 /* =========================================================
    Estado / persistência
    ========================================================= */
 const COLORS = ['#7dd3fc','#a7f3d0','#fde68a','#fbcfe8','#c4b5fd','#fdba74','#99f6e4','#d9f99d','#fca5a5','#bfdbfe'];
-const state = { rooms: [], settings: { phoneHeight: 1.40, forceSensor: false }, selected: null, view: '2d', hlWall: null };
-const STORE = 'plantaAR.v1';
+const state = { rooms: [], settings: { phoneHeight: 1.40, forceSensor: false, scanMode: 'auto', showSeg: true, showFurn: true }, selected: null, view: '2d', hlWall: null };
+const STORE = 'plantaAR.v2';
 function save(){ try { localStorage.setItem(STORE, JSON.stringify({rooms: state.rooms, settings: state.settings})); } catch(e){} }
-function load(){ try { const d = JSON.parse(localStorage.getItem(STORE) || 'null'); if (d) { state.rooms = Array.isArray(d.rooms) ? d.rooms : []; Object.assign(state.settings, d.settings || {}); } } catch(e){} }
+function load(){
+  try {
+    const d = JSON.parse(localStorage.getItem(STORE) || localStorage.getItem('plantaAR.v1') || 'null');
+    if (d) { state.rooms = Array.isArray(d.rooms) ? d.rooms.map(sanitizeRoom).filter(Boolean) : []; Object.assign(state.settings, d.settings || {}); }
+  } catch(e){}
+}
+function sanitizeRoom(r, i){
+  if (!r || !Array.isArray(r.pts) || r.pts.length < 3) return null;
+  const pts = r.pts.map(p=>[+p[0], +p[1]]);
+  return {
+    id: r.id || uid(), name: String(r.name || `Cômodo ${(i||0)+1}`), pts, height: +r.height || 2.6,
+    color: r.color || COLORS[(i||0) % COLORS.length], mode: r.mode || 'import',
+    doors: Array.isArray(r.doors) ? r.doors.filter(d=>d && d.i>=0 && d.i<pts.length).map(d=>({i:+d.i, t0:clamp(+d.t0,0,1), t1:clamp(+d.t1,0,1), kind: d.kind==='passagem'?'passagem':'porta'})) : [],
+    items: Array.isArray(r.items) ? r.items.filter(it=>it && Array.isArray(it.pts) && it.pts.length===4).map(it=>({key:String(it.key||'box'), name:String(it.name||'Objeto'), h:+it.h||0.8, pts:it.pts.map(p=>[+p[0],+p[1]])})) : []
+  };
+}
 function nextColor(){ return COLORS[state.rooms.length % COLORS.length]; }
 
 /* ---------- UI helpers ---------- */
@@ -464,31 +575,110 @@ function download(blob, name){
 let xrSupported = false;
 async function detect(){
   const dot=$('#devDot'), txt=$('#devText');
-  if (!window.isSecureContext) { dot.className='dot bad'; txt.textContent='Página sem HTTPS: o navegador não libera a câmera. Hospede o site em HTTPS.'; $('#forceRow').classList.add('hidden'); return; }
+  if (!window.isSecureContext) { dot.className='dot bad'; txt.textContent='Página sem HTTPS: o navegador não libera a câmera. Use o endereço https:// do site.'; $('#forceRow').classList.add('hidden'); return; }
   try { if (navigator.xr && navigator.xr.isSessionSupported) xrSupported = await navigator.xr.isSessionSupported('immersive-ar'); } catch(e){ xrSupported=false; }
-  if (xrSupported) { dot.className='dot'; txt.innerHTML='<b>AR completo disponível</b> (WebXR). Você pode andar pela casa enquanto escaneia — medidas mais precisas.'; }
+  if (xrSupported) { dot.className='dot'; txt.innerHTML='<b>AR completo disponível</b> (WebXR + ARCore). Você pode andar pelo cômodo durante o scan — é o modo mais preciso.'; }
   else if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-    dot.className='dot mid'; txt.innerHTML='<b>Modo sensores</b> (câmera + giroscópio). Escaneie cada cômodo parado no centro, apenas girando o corpo.';
+    dot.className='dot mid'; txt.innerHTML='<b>Modo sensores</b> (câmera + giroscópio). Fique parado no centro de cada cômodo e gire devagar.';
     $('#forceRow').classList.add('hidden');
-  } else { dot.className='dot bad'; txt.textContent='Este navegador não oferece acesso à câmera.'; $('#forceRow').classList.add('hidden'); }
+  } else { dot.className='dot bad'; txt.textContent='Este navegador não oferece acesso à câmera. Use a simulação para ver como funciona.'; $('#forceRow').classList.add('hidden'); }
 }
 
 /* =========================================================
-   SCAN
+   IA: segmentação semântica no aparelho (SegFormer · ADE20K)
    ========================================================= */
-const FOV_LONG = 66 * DEG;          // campo de visão aproximado do lado maior da câmera traseira
+const TF_URL = 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3';
+const MODEL_ID = 'Xenova/segformer-b0-finetuned-ade-512-512';
+const AI = { status:'idle', device:'', ms:0, busy:false, err:null, prog:0, catLUT:null, clsLUT:null, loading:null, long:320 };
+function loadAI(){
+  if (AI.loading) return AI.loading;
+  AI.status='loading'; AI.prog=0; AI.err=null; updateAIUI();
+  const files = {};
+  const onProg = p => {
+    if (p && p.status==='progress' && p.file) {
+      files[p.file] = [p.loaded||0, p.total||0];
+      let L=0, T=0; for (const k in files){ L+=files[k][0]; T+=files[k][1]; }
+      AI.prog = T ? L/T : 0; updateAIUI();
+    }
+  };
+  AI.loading = (async ()=>{
+    const T = await import(TF_URL);
+    let device = 'wasm';
+    try { if (navigator.gpu) { const ad = await navigator.gpu.requestAdapter(); if (ad) device='webgpu'; } } catch(e){}
+    const Cls = T.AutoModelForSemanticSegmentation || T.AutoModel;
+    let model;
+    try { model = await Cls.from_pretrained(MODEL_ID, { device, dtype: device==='webgpu' ? 'fp32' : 'q8', progress_callback:onProg }); }
+    catch(e){ if (device!=='webgpu') throw e; device='wasm'; model = await Cls.from_pretrained(MODEL_ID, { device, dtype:'q8', progress_callback:onProg }); }
+    const id2label = (model.config && model.config.id2label) || {};
+    const n = Math.max(150, Object.keys(id2label).length);
+    AI.catLUT = new Uint8Array(n); AI.clsLUT = new Uint8Array(n);
+    for (let i=0;i<n;i++){ const [c,k] = catForLabel(id2label[i] ?? id2label[String(i)]); AI.catLUT[i]=c; AI.clsLUT[i]=k; }
+    AI.T = T; AI.model = model; AI.device = device; AI.long = device==='webgpu' ? 384 : 320;
+    try { await segmentRGBA(new Uint8Array(64*64*4), 64, 64, false); } catch(e){ console.warn('aquecimento', e); }
+    AI.status='ready'; updateAIUI();
+  })().catch(e=>{ console.error('IA', e); AI.status='error'; AI.err=e; AI.loading=null; updateAIUI(); throw e; });
+  return AI.loading;
+}
+async function segmentRGBA(px, W, H, flipY){
+  const N=W*H, data=new Float32Array(3*N);
+  const m0=0.485,m1=0.456,m2=0.406,s0=0.229,s1=0.224,s2=0.225;
+  for (let y=0;y<H;y++){ const sy = flipY ? H-1-y : y;
+    for (let x=0;x<W;x++){ const si=(sy*W+x)*4, di=y*W+x;
+      data[di]=(px[si]/255-m0)/s0; data[N+di]=(px[si+1]/255-m1)/s1; data[2*N+di]=(px[si+2]/255-m2)/s2; } }
+  const input = new AI.T.Tensor('float32', data, [1,3,H,W]);
+  const out = await AI.model({ pixel_values: input });
+  const lg = out.logits, C=lg.dims[1], h=lg.dims[2], w=lg.dims[3], hw=h*w;
+  let L; try { L = lg.data; } catch(e){ L = await lg.getData(); }
+  const cat=new Uint8Array(hw), cls=new Uint8Array(hw);
+  for (let i=0;i<hw;i++){ let best=0, bv=L[i]; for (let c=1;c<C;c++){ const v=L[c*hw+i]; if (v>bv){bv=v;best=c;} } cat[i]=AI.catLUT[best]||0; cls[i]=AI.clsLUT[best]||0; }
+  try { lg.dispose && lg.dispose(); input.dispose && input.dispose(); } catch(e){}
+  return {w,h,cat,cls};
+}
+function updateAIUI(){
+  const box=$('#aiLoad'); if (!box) return;
+  const auto = scan.kind==='auto' && scan.mode!=='sim' && scan.active;
+  if (!auto || AI.status==='ready') { box.classList.add('hidden'); return; }
+  box.classList.remove('hidden');
+  $('#btnRetryAI').classList.toggle('hidden', AI.status!=='error');
+  if (AI.status==='error') {
+    $('#scanTips').classList.add('hidden');
+    $('#aiTitle').textContent='Não consegui carregar a IA';
+    $('#aiText').textContent='Verifique a conexão com a internet (o modelo é baixado só na primeira vez) e tente de novo, ou use a marcação manual dos cantos.'+(AI.err?`\n(${String(AI.err.message||AI.err).slice(0,120)})`:'');
+    $('#aiBar').style.width='0%';
+  } else {
+    $('#aiTitle').textContent='Preparando a IA';
+    $('#aiText').textContent=`Baixando o modelo de reconhecimento de ambientes${AI.prog?` — ${Math.round(AI.prog*100)}%`:''}. Isso só acontece na primeira vez.`;
+    $('#aiBar').style.width=Math.round(AI.prog*100)+'%';
+  }
+}
+
+/* =========================================================
+   SCAN — estado comum
+   ========================================================= */
+const FOV_LONG = 66 * DEG;
 const DEFAULT_H = 2.60;
 const scan = {
-  mode:null, active:false, stage:'corners', corners:[], floorY:null, cam:null, reticle:null,
-  heightLive:null, dots:[], stream:null, xrSession:null, hitSource:null, refSpace:null, gl:null,
-  orient:null, fS:null, uS:null, sessionRooms:[], sessionOffset:null, lastReadout:0, lastRoom:null
+  kind:'auto', mode:null, active:false, stage:'corners', corners:[], floorY:null, cam:null, reticle:null,
+  heightLive:null, dots:[], stream:null, xrSession:null, hitSource:null, refSpace:null, gl:null, glBinding:null,
+  orient:null, fS:null, uS:null, raw:null, sessionRooms:[], sessionOffset:null, lastReadout:0, lastRoom:null, nameDirty:false,
+  auto:null, sim:null
 };
-
+function newAuto(){ return { pts:[], heights:[], origins:[], frameNo:0, est:null, lastEst:0, lastAI:0, paused:false, tint:null, tintMode:'full',
+  noFloor:0, fast:false, fps:0, frameTimes:[], lastFound:0, prevF:null, prevT:0 }; }
 function defaultRoomName(){ return `Cômodo ${state.rooms.length + 1}`; }
+function lastHeight(){ const r = state.rooms[state.rooms.length-1]; return r ? r.height : DEFAULT_H; }
+
 function resetRoom(){
-  scan.corners=[]; scan.heightLive=null; scan.lastRoom=null;
-  scan.stage = (scan.mode==='xr' && scan.floorY===null) ? 'floor' : 'corners';
-  if (scan.mode==='sensor') { scan.dots=[]; }
+  scan.corners=[]; scan.heightLive=null; scan.lastRoom=null; scan.nameDirty=false;
+  if (scan.kind==='auto') {
+    const keepOrigins = scan.mode==='xr';
+    scan.auto = newAuto();
+    scan.stage = (scan.mode==='xr' && scan.floorY===null) ? 'floor' : 'auto';
+    if (!keepOrigins) scan.auto.origins = [];
+  } else {
+    scan.stage = (scan.mode==='xr' && scan.floorY===null) ? 'floor' : 'corners';
+    if (scan.mode!=='xr') scan.dots=[];
+  }
   $('#roomName').value = defaultRoomName();
   $('#roomDone').classList.add('hidden');
   updateScanUI();
@@ -496,9 +686,13 @@ function resetRoom(){
 
 async function startScan(){
   const useXR = xrSupported && !state.settings.forceSensor;
-  scan.sessionRooms=[]; scan.sessionOffset=null; scan.dots=[]; scan.floorY=null; scan.cam=null; scan.orient=null; scan.fS=null;
-  $('#scanErr').classList.add('hidden'); $('#roomDone').classList.add('hidden');
+  scan.kind = state.settings.scanMode==='manual' ? 'manual' : 'auto';
+  scan.sessionRooms=[]; scan.sessionOffset=null; scan.dots=[]; scan.floorY=null; scan.cam=null; scan.orient=null; scan.fS=null; scan.raw=null;
+  scan.auto = newAuto();
+  ['#scanErr','#roomDone','#scanTips','#aiLoad'].forEach(s=>$(s).classList.add('hidden'));
+  $('#simbg').classList.add('hidden'); $('#video').classList.remove('hidden');
   showScreen('scan');
+  if (scan.kind==='auto') loadAI().catch(()=>{});
   if (useXR) {
     try { await startXR(); return; }
     catch(e){ console.warn('XR falhou', e); cleanupXR(); toast('AR completo indisponível — usando modo sensores'); }
@@ -508,29 +702,55 @@ async function startScan(){
 
 /* ---------- Modo WebXR (Android/ARCore) ---------- */
 async function startXR(){
-  const session = await navigator.xr.requestSession('immersive-ar', {
-    requiredFeatures:['hit-test','dom-overlay'], domOverlay:{ root: $('#scan') }
-  });
+  const features = ['hit-test','dom-overlay']; if (scan.kind==='auto') features.push('camera-access');
+  const session = await navigator.xr.requestSession('immersive-ar', { requiredFeatures:features, domOverlay:{ root: $('#scan') } });
   scan.xrSession = session; scan.mode='xr';
   document.body.classList.add('xr-on');
   const gl = $('#xrgl').getContext('webgl', { xrCompatible:true, alpha:true, antialias:false });
   if (gl.makeXRCompatible) await gl.makeXRCompatible();
   session.updateRenderState({ baseLayer: new XRWebGLLayer(session, gl) });
   scan.gl = gl;
+  if (scan.kind==='auto') { scan.glBinding = new XRWebGLBinding(session, gl); initBlit(gl); }
   scan.refSpace = await session.requestReferenceSpace('local');
   const viewer = await session.requestReferenceSpace('viewer');
   scan.hitSource = await session.requestHitTestSource({ space: viewer });
   session.addEventListener('end', onXREnd);
   scan.active = true;
-  $('#modeBadge').textContent='AR'; $('#modeBadge').className='badge';
-  resetRoom(); showTips();
+  setBadge();
+  resetRoom(); showTips(); updateAIUI();
   session.requestAnimationFrame(onXRFrame);
 }
-function cleanupXR(){ document.body.classList.remove('xr-on'); scan.hitSource=null; scan.xrSession=null; }
-function onXREnd(){
-  const wasActive = scan.active;
-  cleanupXR(); scan.active=false;
-  if (wasActive) goAfterScan();
+function cleanupXR(){ document.body.classList.remove('xr-on'); scan.hitSource=null; scan.xrSession=null; scan.glBinding=null; blit=null; }
+function onXREnd(){ const was=scan.active; cleanupXR(); scan.active=false; if (was) goAfterScan(); }
+
+/* cópia da imagem da câmera do AR para um buffer pequeno (GPU → CPU) */
+let blit = null;
+function initBlit(gl){
+  const sh=(t,src)=>{const s=gl.createShader(t);gl.shaderSource(s,src);gl.compileShader(s);return s;};
+  const pr=gl.createProgram();
+  gl.attachShader(pr, sh(gl.VERTEX_SHADER,'attribute vec2 p;varying vec2 uv;void main(){uv=p*0.5+0.5;gl_Position=vec4(p,0.,1.);}'));
+  gl.attachShader(pr, sh(gl.FRAGMENT_SHADER,'precision mediump float;varying vec2 uv;uniform sampler2D t;void main(){gl_FragColor=texture2D(t,uv);}'));
+  gl.linkProgram(pr);
+  const buf=gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER,buf); gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,3,-1,-1,3]),gl.STATIC_DRAW);
+  blit = { pr, buf, loc: gl.getAttribLocation(pr,'p'), uT: gl.getUniformLocation(pr,'t'), fbo: gl.createFramebuffer(), tex: gl.createTexture(), W:0, H:0 };
+}
+function grabXR(gl, camTex, W, H, layerFb){
+  const b = blit;
+  if (b.W!==W || b.H!==H) {
+    gl.bindTexture(gl.TEXTURE_2D, b.tex);
+    gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,W,H,0,gl.RGBA,gl.UNSIGNED_BYTE,null);
+    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, b.fbo); gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, b.tex, 0);
+    b.W=W; b.H=H;
+  }
+  gl.bindFramebuffer(gl.FRAMEBUFFER, b.fbo); gl.viewport(0,0,W,H);
+  gl.disable(gl.DEPTH_TEST); gl.disable(gl.BLEND);
+  gl.useProgram(b.pr); gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, camTex); gl.uniform1i(b.uT, 0);
+  gl.bindBuffer(gl.ARRAY_BUFFER, b.buf); gl.enableVertexAttribArray(b.loc); gl.vertexAttribPointer(b.loc,2,gl.FLOAT,false,0,0);
+  gl.drawArrays(gl.TRIANGLES,0,3);
+  const px = new Uint8Array(W*H*4); gl.readPixels(0,0,W,H,gl.RGBA,gl.UNSIGNED_BYTE,px);
+  gl.bindFramebuffer(gl.FRAMEBUFFER, layerFb);
+  return px;
 }
 function onXRFrame(t, frame){
   const session = frame.session;
@@ -551,23 +771,38 @@ function onXRFrame(t, frame){
       const hp = hits[0].getPose(scan.refSpace);
       if (hp) {
         const p = hp.transform.position, up = quatRotate(hp.transform.orientation, [0,1,0]);
-        // superfície horizontal pelo menos 70 cm abaixo do celular = chão
-        if (scan.corners.length===0 && up[1] > 0.85 && scan.cam.pos[1] - p.y > 0.7) {
+        const canUpdate = scan.kind==='auto' ? (scan.auto.pts.length===0) : (scan.corners.length===0);
+        if (canUpdate && up[1] > 0.85 && scan.cam.pos[1] - p.y > 0.7) {
           if (scan.floorY===null || p.y < scan.floorY - 0.05) scan.floorY = p.y;
-          if (scan.stage==='floor') { scan.stage='corners'; haptic(30); updateScanUI(); }
+          if (scan.stage==='floor') { scan.stage = scan.kind==='auto' ? 'auto' : 'corners'; haptic(30); updateScanUI(); }
         }
       }
     }
   }
-  computeReticle(); drawOverlay();
+  // IA: captura um quadro da câmera quando o modelo estiver livre
+  if (scan.kind==='auto' && scan.stage==='auto' && view.camera && scan.glBinding && aiWantsFrame()) {
+    try {
+      const camTex = scan.glBinding.getCameraImage(view.camera);
+      if (camTex) {
+        const cw=view.camera.width, ch=view.camera.height, s=AI.long/Math.max(cw,ch);
+        const aw=Math.max(32, Math.round(cw*s/32)*32), ah=Math.max(32, Math.round(ch*s/32)*32);
+        const px = grabXR(gl, camTex, aw, ah, layer.framebuffer);
+        gl.viewport(0,0,layer.framebufferWidth,layer.framebufferHeight);
+        const c = scan.cam;
+        const fc = { pos:c.pos.slice(), r:c.r.slice(), u:c.u.slice(), f:c.f.slice(), kx:2/P[0], ox:(1-P[8])/2, ky:2/P[5], oy:(1+P[9])/2, floorY:scan.floorY };
+        runAI(px, aw, ah, true, fc);
+      }
+    } catch(e){ console.warn('captura XR', e); }
+  }
+  if (scan.kind==='manual') computeReticle(); else autoTick();
+  drawOverlay();
 }
 
 /* ---------- Modo sensores (câmera + giroscópio) ---------- */
 function onOrient(e){ if (e.beta==null && e.gamma==null) return; scan.orient = { a:e.alpha||0, b:e.beta||0, g:e.gamma||0 }; }
 async function startSensor(){
   scan.mode='sensor'; scan.floorY=0;
-  $('#modeBadge').textContent='Sensores'; $('#modeBadge').className='badge sensor';
-  // as duas permissões são pedidas ainda dentro do toque do usuário
+  setBadge();
   let pOrient = Promise.resolve('granted');
   try { if (typeof DeviceOrientationEvent!=='undefined' && typeof DeviceOrientationEvent.requestPermission==='function') pOrient = DeviceOrientationEvent.requestPermission(); } catch(e){}
   let pCam;
@@ -575,32 +810,39 @@ async function startSensor(){
     pCam = navigator.mediaDevices.getUserMedia({ audio:false, video:{ facingMode:{ ideal:'environment' }, width:{ ideal:1280 }, height:{ ideal:720 } } });
   } else pCam = Promise.reject(Object.assign(new Error('no-media'), {name:'NoMedia'}));
   let stream;
-  try { stream = await pCam; }
-  catch(e){ showScanError(cameraErrorText(e)); return; }
+  try { stream = await pCam; } catch(e){ showScanError(cameraErrorText(e)); return; }
   let orientDenied = false;
   try { const r = await pOrient; orientDenied = r!=='granted'; } catch(e){ orientDenied = true; }
   scan.stream = stream;
   const v = $('#video'); v.srcObject = stream; try { await v.play(); } catch(e){}
   window.addEventListener('deviceorientation', onOrient);
   scan.active = true;
-  resetRoom(); showTips();
+  resetRoom(); showTips(); updateAIUI();
   requestAnimationFrame(sensorLoop);
   setTimeout(()=>{ if (scan.active && scan.mode==='sensor' && !scan.orient) showScanError(orientDenied
     ? 'O acesso aos sensores de movimento foi negado. Ele é necessário para calcular as distâncias. Libere “Movimento e orientação” nas configurações do navegador e tente de novo.'
-    : 'Não recebemos dados do giroscópio deste aparelho. Use um celular com sensor de orientação (no computador o scan não funciona).'); }, 3000);
+    : 'Não recebemos dados do giroscópio deste aparelho. Use um celular com sensor de orientação (no computador o scan não funciona — veja a simulação).'); }, 3000);
 }
 function cameraErrorText(e){
   const n = e && e.name;
-  if (n==='NotAllowedError' || n==='SecurityError') return 'O acesso à câmera foi bloqueado. Permita a câmera nas configurações do navegador para este site. Se esta página está aberta dentro de outro app (como uma prévia), abra o link direto no navegador do celular.';
+  if (n==='NotAllowedError' || n==='SecurityError') return 'O acesso à câmera foi bloqueado. Permita a câmera para este site nas configurações do navegador. Se a página está aberta dentro de outro app (como uma prévia), abra o endereço direto no navegador do celular.';
   if (n==='NotFoundError' || n==='OverconstrainedError') return 'Nenhuma câmera foi encontrada neste aparelho.';
   if (n==='NotReadableError') return 'A câmera está sendo usada por outro aplicativo. Feche-o e tente de novo.';
-  if (!window.isSecureContext) return 'A câmera só funciona em páginas HTTPS. Hospede o arquivo em um endereço https://.';
+  if (!window.isSecureContext) return 'A câmera só funciona em páginas HTTPS.';
   return 'Este navegador não liberou a câmera ('+(n||'erro desconhecido')+').';
 }
 function sensorLoop(){
   if (!scan.active || scan.mode!=='sensor') return;
   requestAnimationFrame(sensorLoop);
-  updateSensorCam(); computeReticle(); drawOverlay();
+  updateSensorCam();
+  if (scan.kind==='manual') computeReticle();
+  else {
+    if (scan.stage==='auto' && scan.raw && aiWantsFrame() && !scan.auto.fast) {
+      const g = grabVideo(); if (g) runAI(g.px, g.W, g.H, false, sensorFrameCam());
+    }
+    autoTick();
+  }
+  drawOverlay();
 }
 function updateSensorCam(){
   const o = scan.orient; if (!o) { scan.cam=null; return; }
@@ -609,7 +851,12 @@ function updateSensorCam(){
   R = mul3(R, rotZ(-ang));
   const col = j => [R[0][j], R[1][j], R[2][j]];
   const toW = v => [v[0], v[2], -v[1]];          // (leste, norte, cima) -> (x, y=cima, z)
-  let f = toW(mulS(col(2), -1)), u = toW(col(1));
+  const fr = toW(mulS(col(2), -1)), ur = toW(col(1)), rr = norm(cross(fr, ur));
+  scan.raw = { f:fr, u:cross(rr, fr), r:rr };
+  // velocidade de giro (evita quadros borrados)
+  const now = performance.now(), A = scan.auto;
+  if (A) { if (A.prevF && now - A.prevT > 120) { const angS = Math.acos(clamp(dot(A.prevF, fr), -1, 1)) / ((now - A.prevT)/1000); A.fast = angS > 35*DEG; A.prevF = fr; A.prevT = now; } else if (!A.prevF) { A.prevF = fr; A.prevT = now; } }
+  let f = fr, u = ur;
   if (scan.fS) { f = norm(lerp3(scan.fS, f, 0.35)); u = norm(lerp3(scan.uS, u, 0.35)); }
   scan.fS = f; scan.uS = u;
   const r = norm(cross(f, u)); u = cross(r, f);
@@ -619,15 +866,356 @@ function updateSensorCam(){
   const focal = (Math.max(vw, vh)/2) / Math.tan(FOV_LONG/2) * sc;
   scan.cam = { pos:[0, state.settings.phoneHeight, 0], r, u, f, fx:focal, fy:focal, cx:W/2, cy:H/2 };
 }
-
-/* ---------- comum ---------- */
-function heightAt(c0){
-  const c = scan.cam; if (!c) return null;
-  const f = c.f, w0 = sub(c.pos, c0), b = f[1], d = dot(f, w0), den = 1 - b*b;
-  if (den < 0.03) return null;
-  const tRay = (b*w0[1] - d) / den; if (tRay <= 0) return null;
-  return (w0[1] - b*d) / den;
+const grabCv = document.createElement('canvas'); const grabCtx = grabCv.getContext('2d', { willReadFrequently:true });
+function grabVideo(){
+  const v=$('#video'), vw=v.videoWidth, vh=v.videoHeight; if (!vw) return null;
+  const s=AI.long/Math.max(vw,vh), W=Math.max(32,Math.round(vw*s/32)*32), H=Math.max(32,Math.round(vh*s/32)*32);
+  if (grabCv.width!==W || grabCv.height!==H) { grabCv.width=W; grabCv.height=H; }
+  grabCtx.drawImage(v,0,0,W,H);
+  return { px: grabCtx.getImageData(0,0,W,H).data, W, H };
 }
+function sensorFrameCam(){
+  const v=$('#video'), vw=v.videoWidth, vh=v.videoHeight, focal=(Math.max(vw,vh)/2)/Math.tan(FOV_LONG/2), o=scan.raw;
+  return { pos:[0, state.settings.phoneHeight, 0], r:o.r.slice(), u:o.u.slice(), f:o.f.slice(), kx:vw/focal, ky:vh/focal, ox:0.5, oy:0.5, floorY:0 };
+}
+function setBadge(){
+  const b=$('#modeBadge');
+  if (scan.mode==='sim') { b.textContent='Simulação'; b.className='badge sim'; }
+  else if (scan.mode==='xr') { b.textContent='AR'; b.className='badge'; }
+  else { b.textContent='Sensores'; b.className='badge sensor'; }
+}
+
+/* =========================================================
+   SCAN AUTOMÁTICO
+   ========================================================= */
+function aiWantsFrame(){
+  const A = scan.auto; if (!A || A.paused || AI.busy) return false;
+  if (scan.mode==='sim') return performance.now() - A.lastAI > 160;
+  return AI.status==='ready' && performance.now() - A.lastAI > (AI.device==='webgpu' ? 90 : 200);
+}
+async function runAI(px, W, H, flipY, fc){
+  const A = scan.auto; AI.busy = true; const t0 = performance.now();
+  try {
+    const seg = await segmentRGBA(px, W, H, flipY);
+    if (scan.auto !== A || !scan.active) return;
+    integrate(seg, fc); makeTint(seg, scan.mode==='sensor' ? 'video' : 'full');
+    const now = performance.now(); A.frameTimes.push(now); while (A.frameTimes.length && now - A.frameTimes[0] > 3000) A.frameTimes.shift();
+    AI.ms = AI.ms ? AI.ms*0.8 + (now-t0)*0.2 : now-t0;
+  } catch(e){ console.warn('quadro', e); }
+  finally { AI.busy = false; A.lastAI = performance.now(); }
+}
+function fcRay(fc, a, b){ const xc=(a-fc.ox)*fc.kx, yc=-(b-fc.oy)*fc.ky; return norm(add(add(fc.f, mulS(fc.r, xc)), mulS(fc.u, yc))); }
+function heightFrom(pos, f, c0){
+  const w0=sub(pos,c0), b=f[1], d=dot(f,w0), den=1-b*b;
+  if (den<0.03) return null;
+  if ((b*w0[1]-d)/den <= 0) return null;
+  return (w0[1]-b*d)/den;
+}
+/* Converte o mapa de classes em pontos no chão: onde o chão encontra parede/porta/móvel */
+function integrate(seg, fc){
+  const A=scan.auto, {w,h,cat,cls}=seg, fy=fc.floorY, P=fc.pos, maxD = scan.mode==='xr' ? 9 : 7.5;
+  const fr = ++A.frameNo; let found=0; const col=new Array(w).fill(null);
+  for (let j=0;j<w;j++){
+    let i=h-1; while (i>=0 && cat[i*w+j]!==CAT.FLOOR) i--;
+    if (i < h*0.2) continue;
+    let run=0;
+    while (i>=0){ const c=cat[i*w+j]; if (c===CAT.FLOOR){ run++; i--; } else if (i>0 && cat[(i-1)*w+j]===CAT.FLOOR){ i--; } else break; }
+    if (i<1 || run<2) continue;
+    const votes=[0,0,0,0,0,0,0]; let fk=0;
+    for (let k=i; k>=Math.max(0,i-2); k--){ const c=cat[k*w+j]; votes[c]++; if (c===CAT.FURN && !fk) fk=cls[k*w+j]; }
+    let C=0, V=0; for (const c of [CAT.WALL,CAT.WIN,CAT.DOOR,CAT.FURN]) if (votes[c]>V){ V=votes[c]; C=c; }
+    if (V<2) continue;
+    const a=(j+0.5)/w, b=(i+1)/h, d=fcRay(fc,a,b);
+    if (d[1] > -0.03) continue;
+    const t=(fy-P[1])/d[1], x=P[0]+d[0]*t, z=P[2]+d[2]*t, hd=Math.hypot(x-P[0], z-P[2]);
+    if (hd>maxD || hd<0.3) continue;
+    const type = C===CAT.FURN ? 'f' : C===CAT.DOOR ? 'd' : 'w';
+    const pt={x, z, t:type, k: type==='f' ? fk : 0, ox:P[0], oz:P[2], fr, dx:0, dz:0}; A.pts.push(pt); found++;
+    if (type!=='f') col[j]=pt;
+    if (type==='w'){ // pé-direito: encontro do teto com a mesma parede
+      let k=0; while (k<i && cat[k*w+j]===CAT.CEIL) k++;
+      if (k>=1 && k<i-2 && (cat[k*w+j]===CAT.WALL || cat[k*w+j]===CAT.WIN)){
+        const hh = heightFrom(P, fcRay(fc,a,k/h), [x,fy,z]); if (hh && hh>1.8 && hh<5) A.heights.push(hh);
+      }
+    }
+  }
+  for (let j=0;j<w;j++){ const p=col[j]; if (!p) continue; const a=col[j-1]||col[j-2]||p, b=col[j+1]||col[j+2]||p; if (a===b) continue;
+    const ddx=b.x-a.x, ddz=b.z-a.z, L=Math.hypot(ddx,ddz); if (L<0.02 || L>0.6) continue; p.dx=ddx/L; p.dz=ddz/L; }
+  A.lastFound = found; A.noFloor = found<3 ? A.noFloor+1 : 0;
+  const o=[P[0],P[2]]; if (!A.origins.some(q=>d2(q,o)<0.3)) A.origins.push(o);
+  if (A.pts.length > 9000){ const keepNew=A.pts.slice(-4500), old=A.pts.slice(0,-4500).filter((_,i)=>i%2===0); A.pts=old.concat(keepNew); }
+  if (A.heights.length > 2000) A.heights.splice(0, 1000);
+}
+const TINT = [null,[59,232,176],[90,140,255],[255,181,71],[170,170,200],[196,120,253],[120,200,255]];
+function makeTint(seg, mode){
+  const A=scan.auto, {w,h,cat}=seg;
+  let cv = A.tint; if (!cv) { cv = A.tint = document.createElement('canvas'); }
+  if (cv.width!==w || cv.height!==h) { cv.width=w; cv.height=h; }
+  const ctx=cv.getContext('2d'), img=ctx.createImageData(w,h);
+  for (let i=0;i<w*h;i++){ const c=TINT[cat[i]]; if (!c) continue; img.data[i*4]=c[0]; img.data[i*4+1]=c[1]; img.data[i*4+2]=c[2]; img.data[i*4+3]=255; }
+  ctx.putImageData(img,0,0); A.tintMode = mode;
+}
+function autoTick(){
+  const A=scan.auto; if (!A || scan.stage!=='auto') return;
+  const now=performance.now();
+  if (now - A.lastEst > 700 && A.pts.length) { A.lastEst = now; try { A.est = estimateRoom(A); } catch(e){ console.warn('estimativa', e); } }
+}
+
+/* ---------- estimativa da planta do cômodo ---------- */
+function dominantAngle(W){
+  let sx=0, sy=0, nd=0; for (const p of W) if (p.dx||p.dz){ const a=4*Math.atan2(p.dz,p.dx); sx+=Math.cos(a); sy+=Math.sin(a); nd++; }
+  if (nd>=30 && Math.hypot(sx,sy)/nd > 0.25) return Math.atan2(sy,sx)/4;
+  const step = Math.max(1, Math.floor(W.length/2500)), S=[];
+  for (let i=0;i<W.length;i+=step) S.push(W[i]);
+  const score = th => { const c=Math.cos(th), s=Math.sin(th), hx=new Map(), hz=new Map(); let sc=0;
+    for (const p of S){ const bx=Math.round((p.x*c+p.z*s)/0.05), bz=Math.round((-p.x*s+p.z*c)/0.05);
+      const vx=(hx.get(bx)||0)+1; hx.set(bx,vx); sc+=2*vx-1; const vz=(hz.get(bz)||0)+1; hz.set(bz,vz); sc+=2*vz-1; }
+    return sc; };
+  let bestD=0, best=-1;
+  for (let d=0; d<90; d+=2){ const v=score(d*DEG); if (v>best){best=v;bestD=d;} }
+  let fine=bestD; best=-1;
+  for (let d=bestD-2; d<=bestD+2; d+=0.25){ const v=score(d*DEG); if (v>best){best=v;fine=d;} }
+  return fine*DEG;
+}
+function peaks(vals, minC){
+  if (!vals.length) return [];
+  const b=0.05; let mn=Infinity, mx=-Infinity; for (const v of vals){ if(v<mn)mn=v; if(v>mx)mx=v; }
+  const n=Math.ceil((mx-mn)/b)+6, hst=new Float32Array(n);
+  for (const v of vals) hst[Math.floor((v-mn)/b)+2]++;
+  const sm=new Float32Array(n), K=[1,2,3,2,1];
+  for (let i=0;i<n;i++) for (let k=-2;k<=2;k++){ const j=i+k; if (j>=0&&j<n) sm[i]+=hst[j]*K[k+2]/3; }
+  const cand=[]; for (let i=1;i<n-1;i++) if (sm[i]>=minC && sm[i]>=sm[i-1] && sm[i]>sm[i+1]) cand.push([sm[i], mn+(i-2+0.5)*b]);
+  cand.sort((p,q)=>q[0]-p[0]);
+  const out=[]; for (const c of cand) if (out.every(o=>Math.abs(o-c[1])>=0.35)) out.push(c[1]);
+  return out.map(pk=>{ let s=0, k=0; for (const v of vals) if (Math.abs(v-pk)<0.08){ s+=v; k++; } return k ? s/k : pk; });
+}
+function clusters1D(arr, gap){
+  const a=arr.slice().sort((p,q)=>p.s-q.s), out=[]; let cur=null;
+  for (const o of a){ if (cur && o.s - cur.max <= gap){ cur.items.push(o); cur.max=o.s; } else { cur={items:[o], min:o.s, max:o.s}; out.push(cur); } }
+  return out;
+}
+function traceCells(G, nx, nz){
+  const ins=(i,k)=> i>=0 && k>=0 && i<nx && k<nz && G[k*nx+i]===1;
+  const edges=new Map(), addE=(a,b,c,d)=>{ const key=a+','+b; if(!edges.has(key)) edges.set(key,[]); edges.get(key).push([c,d]); };
+  for (let k=0;k<nz;k++) for (let i=0;i<nx;i++) if (ins(i,k)){
+    if (!ins(i,k-1)) addE(i,k,i+1,k);
+    if (!ins(i+1,k)) addE(i+1,k,i+1,k+1);
+    if (!ins(i,k+1)) addE(i+1,k+1,i,k+1);
+    if (!ins(i-1,k)) addE(i,k+1,i,k);
+  }
+  const loops=[];
+  while (edges.size){
+    const start=edges.keys().next().value; let cur=start, guard=10000; const loop=[];
+    do { const arr=edges.get(cur); if (!arr) break; const nxt=arr.pop(); if (!arr.length) edges.delete(cur); loop.push(cur.split(',').map(Number)); cur=nxt.join(','); }
+    while (cur!==start && guard--);
+    if (loop.length>=4) loops.push(loop);
+  }
+  let best=null, ba=0; for (const l of loops){ const a=Math.abs(polyArea(l)); if (a>ba){ba=a;best=l;} }
+  return best;
+}
+function estimateRoom(A){
+  const P=A.pts, Wp=P.filter(p=>p.t!=='f');
+  if (Wp.length < 40) return null;
+  const th=dominantAngle(Wp), c=Math.cos(th), s=Math.sin(th);
+  const fw=(x,z)=>[x*c+z*s, -x*s+z*c], bw=(x,z)=>[x*c-z*s, x*s+z*c];
+  let x0=Infinity, z0=Infinity, x1=-Infinity, z1=-Infinity;
+  const R=P.map(p=>{ const q=fw(p.x,p.z), o=fw(p.ox,p.oz); x0=Math.min(x0,q[0],o[0]); x1=Math.max(x1,q[0],o[0]); z0=Math.min(z0,q[1],o[1]); z1=Math.max(z1,q[1],o[1]); return {x:q[0],z:q[1],ox:o[0],oz:o[1],t:p.t,k:p.k,fr:p.fr, dx:p.dx*c+p.dz*s, dz:-p.dx*s+p.dz*c}; });
+  x0-=0.5; z0-=0.5; x1+=0.5; z1+=0.5;
+  let cell=0.1; while ((x1-x0)/cell*(z1-z0)/cell > 40000) cell*=1.25;
+  const gw=Math.ceil((x1-x0)/cell), gh=Math.ceil((z1-z0)/cell);
+  const free=new Uint16Array(gw*gh), furn=new Uint8Array(gw*gh), outm=new Uint8Array(gw*gh);
+  const gi=(x,z)=>{ const i=Math.floor((x-x0)/cell), k=Math.floor((z-z0)/cell); return (i<0||k<0||i>=gw||k>=gh) ? -1 : k*gw+i; };
+  const mark=(arr, ox, oz, dx, dz, t0, t1, inc)=>{ const n=Math.max(1,Math.ceil((t1-t0)/(cell*0.5))); let last=-2; for (let q=0;q<=n;q++){ const t=t0+(t1-t0)*q/n, id=gi(ox+dx*t, oz+dz*t); if (id>=0 && id!==last){ if (inc) arr[id]++; else arr[id]=1; last=id; } } };
+  for (const p of R){
+    const dx=p.x-p.ox, dz=p.z-p.oz, L=Math.hypot(dx,dz); if (L<0.2) continue;
+    const ux=dx/L, uz=dz/L;
+    mark(free, p.ox, p.oz, ux, uz, 0, L-0.12, true);
+    if (p.t==='f') mark(furn, p.ox, p.oz, ux, uz, L, L+0.6, false);   // atrás do móvel ainda é cômodo
+    else mark(outm, p.ox, p.oz, ux, uz, L+0.1, L+0.45, false);         // atrás da parede é fora
+  }
+  const RW=R.filter(p=>p.t!=='f'), RF=R.filter(p=>p.t==='f'), minC=Math.max(4, RW.length*0.02);
+  const RWv=RW.filter(p=>Math.abs(p.dz)>0.85), RWh=RW.filter(p=>Math.abs(p.dx)>0.85);   // paredes em x=const / z=const
+  const minV=Math.max(4, RWv.length*0.03), minH=Math.max(4, RWh.length*0.03);
+  const pxs=peaks(RWv.map(p=>p.x), minV), pzs=peaks(RWh.map(p=>p.z), minH);
+  let fx0=Infinity, fx1=-Infinity, fz0=Infinity, fz1=-Infinity;
+  for (let k=0;k<gh;k++) for (let i=0;i<gw;i++) if (free[k*gw+i]>=2){ const x=x0+(i+0.5)*cell, z=z0+(k+0.5)*cell; fx0=Math.min(fx0,x); fx1=Math.max(fx1,x); fz0=Math.min(fz0,z); fz1=Math.max(fz1,z); }
+  if (!isFinite(fx0)) return null;
+  const xs=pxs.slice(), zs=pzs.slice();
+  const addIf=(arr,v)=>{ if (!arr.some(q=>Math.abs(q-v)<0.35)) arr.push(v); };
+  xs.push(Math.min(fx0, ...pxs) - 0.6, Math.max(fx1, ...pxs) + 0.6); zs.push(Math.min(fz0, ...pzs) - 0.6, Math.max(fz1, ...pzs) + 0.6);   // anel externo
+  xs.sort((p,q)=>p-q); zs.sort((p,q)=>p-q);
+  const nx=xs.length-1, nz=zs.length-1; if (nx<1||nz<1) return null;
+  // trechos de parede confirmados em cada linha (pontos de parede + móveis encostados)
+  const support=(isX, v)=>{
+    if (!(isX ? pxs : pzs).includes(v)) return [];
+    const a=[]; for (const p of (isX?RWv:RWh)) if (Math.abs((isX?p.x:p.z)-v)<0.12) a.push(isX?p.z:p.x);
+    if (a.length<(isX?minV:minH)) return [];
+    for (const p of RF) if (Math.abs((isX?p.x:p.z)-v)<1.1) a.push(isX?p.z:p.x);
+    a.sort((p,q)=>p-q); const iv=[]; let c0=a[0], c1=a[0];
+    for (const t of a){ if (t-c1>1.7){ iv.push([c0-0.1,c1+0.1]); c0=t; } c1=t; } iv.push([c0-0.1,c1+0.1]);
+    return iv;
+  };
+  const cover=(iv,a,b)=>{ let c=0; for (const [p,q] of iv) c+=Math.max(0, Math.min(b,q)-Math.max(a,p)); return c/Math.max(1e-6,b-a); };
+  const supX=xs.map(v=>support(true,v)), supZ=zs.map(v=>support(false,v));
+  const blockV=(i,k)=> cover(supX[i], zs[k], zs[k+1]) >= 0.5;   // aresta na linha xs[i]
+  const blockH=(i,k)=> cover(supZ[k], xs[i], xs[i+1]) >= 0.5;   // aresta na linha zs[k]
+  const inF=new Float32Array(nx*nz), outF=new Float32Array(nx*nz);
+  for (let k=0;k<nz;k++) for (let i=0;i<nx;i++){
+    const ia=clamp(Math.round((xs[i]-x0)/cell),0,gw), ib=clamp(Math.round((xs[i+1]-x0)/cell),0,gw);
+    const ka=clamp(Math.round((zs[k]-z0)/cell),0,gh), kb=clamp(Math.round((zs[k+1]-z0)/cell),0,gh);
+    let tot=0, iN=0, oN=0;
+    for (let kk=ka; kk<kb; kk++) for (let ii=ia; ii<ib; ii++){ tot++; const id=kk*gw+ii; if (free[id]>0 || furn[id]) iN++; else if (outm[id]) oN++; }
+    if (tot){ inF[k*nx+i]=iN/tot; outF[k*nx+i]=oN/tot; }
+  }
+  const cellOf=(x,z)=>{ let i=-1,k=-1; for (let q=0;q<nx;q++) if (x>=xs[q]&&x<xs[q+1]) i=q; for (let q=0;q<nz;q++) if (z>=zs[q]&&z<zs[q+1]) k=q; return (i<0||k<0) ? -1 : k*nx+i; };
+  const seeds=[]; for (const o of A.origins){ const q=fw(o[0],o[1]), id=cellOf(q[0],q[1]); if (id>=0 && !seeds.includes(id)) seeds.push(id); }
+  if (!seeds.length) return null;
+  const flood=(strict)=>{
+    const comp=new Uint8Array(nx*nz), st=seeds.slice(); let leak=false; seeds.forEach(id=>comp[id]=1);
+    while (st.length){ const id=st.pop(), i=id%nx, k=(id/nx)|0;
+      if (i===0||k===0||i===nx-1||k===nz-1) leak=true;
+      const nb=[[i+1,k, ()=>blockV(i+1,k)], [i-1,k, ()=>blockV(i,k)], [i,k+1, ()=>blockH(i,k+1)], [i,k-1, ()=>blockH(i,k)]];
+      for (const [ni,nk,blk] of nb){ if (ni<0||nk<0||ni>=nx||nk>=nz) continue; const nid=nk*nx+ni; if (comp[nid]) continue;
+        if (blk()) continue;
+        if (outF[nid]>0.3 && outF[nid]>inF[nid]) continue;
+        if (strict && inF[nid]<0.3) continue;
+        comp[nid]=1; st.push(nid); } }
+    return {comp, leak};
+  };
+  let {comp, leak} = flood(false);
+  if (leak) comp = flood(true).comp;
+  const outside=new Uint8Array(nx*nz), st2=[];
+  for (let k=0;k<nz;k++) for (let i=0;i<nx;i++) if ((i===0||k===0||i===nx-1||k===nz-1) && !comp[k*nx+i]){ outside[k*nx+i]=1; st2.push(k*nx+i); }
+  while (st2.length){ const id=st2.pop(), i=id%nx, k=(id/nx)|0;
+    for (const [di,dk] of [[1,0],[-1,0],[0,1],[0,-1]]){ const ni=i+di, nk=k+dk; if (ni<0||nk<0||ni>=nx||nk>=nz) continue; const nid=nk*nx+ni; if (!comp[nid] && !outside[nid]){ outside[nid]=1; st2.push(nid); } } }
+  for (let id=0; id<nx*nz; id++) if (!outside[id]) comp[id]=1;
+  const loop=traceCells(comp, nx, nz); if (!loop) return null;
+  let poly=simplifyCollinear(loop.map(([i,k])=>[xs[i], zs[k]]));
+  let rx0=Infinity, rx1=-Infinity, rz0=Infinity, rz1=-Infinity; poly.forEach(([x,z])=>{ rx0=Math.min(rx0,x); rx1=Math.max(rx1,x); rz0=Math.min(rz0,z); rz1=Math.max(rz1,z); });
+  const polyA = poly;                      // no referencial alinhado
+  poly = poly.map(([x,z])=>bw(x,z));       // de volta ao mundo
+  if (poly.length<3 || Math.abs(polyArea(poly))<1.0) return null;
+  const n=poly.length, edgeLen=i=>d2(poly[i], poly[(i+1)%n]);
+
+  // --- portas (classe "porta" junto a uma parede)
+  const doors=[], byEdge=poly.map(()=>[]);
+  for (const p of P) if (p.t==='d'){ const q=[p.x,p.z]; let best=null;
+    for (let i=0;i<n;i++){ const pr=projOnSeg(q, poly[i], poly[(i+1)%n]); if (pr.d<0.45 && (!best||pr.d<best.d)) best={i, s:pr.tc*pr.L, d:pr.d, fr:p.fr}; }
+    if (best) byEdge[best.i].push(best); }
+  byEdge.forEach((arr,i)=>{ for (const cl of clusters1D(arr,0.3)){
+    if (cl.items.length<4 || new Set(cl.items.map(o=>o.fr)).size<2) continue;
+    let wd=cl.max-cl.min; if (wd<0.4) continue;
+    const L=edgeLen(i), mid=(cl.min+cl.max)/2; wd=clamp(wd,0.7,1.8);
+    const a=clamp(mid-wd/2, 0.05, Math.max(0.05, L-0.35)), b=clamp(mid+wd/2, a+0.3, L-0.05);
+    if (b>a) doors.push({i, t0:a/L, t1:b/L, kind:'porta'}); } });
+  // --- passagens (raios que atravessam a linha da parede e vão longe)
+  const crossings=poly.map(()=>[]);
+  for (const p of P){ const q=[p.x,p.z], o=[p.ox,p.oz];
+    if (pointInPoly(q,poly) || distToPoly(q,poly)<0.6 || !pointInPoly(o,poly)) continue;
+    let best=null; for (let i=0;i<n;i++){ const it=segIntersect(o,q,poly[i],poly[(i+1)%n]); if (it && (!best||it.t<best.t)) best={i, t:it.t, s:it.s*edgeLen(i)}; }
+    if (best) crossings[best.i].push({s:best.s, fr:p.fr}); }
+  crossings.forEach((arr,i)=>{ for (const cl of clusters1D(arr,0.25)){
+    if (cl.items.length<6 || new Set(cl.items.map(o=>o.fr)).size<2) continue;
+    const span=cl.max-cl.min; if (span<0.55) continue;
+    const L=edgeLen(i), wd=clamp(span+0.1, 0.7, 2.6), mid=(cl.min+cl.max)/2;
+    const a=clamp(mid-wd/2, 0.03, Math.max(0.03, L-0.33)), b=clamp(mid+wd/2, a+0.3, L-0.03);
+    const t0=a/L, t1=b/L;
+    if (doors.some(d=>d.i===i && d.t0<t1 && d.t1>t0)) continue;
+    doors.push({i, t0, t1, kind:'passagem'}); } });
+
+  // --- móveis (contato com o chão, agrupados por tipo)
+  const boxes=[], groups=new Map();
+  for (const p of R) if (p.t==='f' && p.k){ if (!groups.has(p.k)) groups.set(p.k, []); groups.get(p.k).push(p); }
+  for (const [k, arr] of groups){
+    const used=new Uint8Array(arr.length);
+    for (let s0=0; s0<arr.length; s0++){ if (used[s0]) continue;
+      const cl=[s0]; used[s0]=1;
+      for (let q=0; q<cl.length; q++){ const a=arr[cl[q]]; for (let j=0;j<arr.length;j++) if (!used[j] && Math.hypot(arr[j].x-a.x, arr[j].z-a.z)<0.35){ used[j]=1; cl.push(j); } }
+      if (cl.length<5) continue;
+      const pts=cl.map(q=>arr[q]); if (new Set(pts.map(p=>p.fr)).size<2) continue;
+      const qx=pts.map(p=>p.x).sort((a,b)=>a-b), qz=pts.map(p=>p.z).sort((a,b)=>a-b), lo=pts.length>=10 ? Math.floor(pts.length*0.08) : 0, hi=pts.length-1-lo;
+      let ax0=qx[lo], ax1=qx[hi], az0=qz[lo], az1=qz[hi], mox=0, moz=0;
+      for (const p of pts){ mox+=p.ox; moz+=p.oz; } mox/=pts.length; moz/=pts.length;
+      const key=FURN_KEYS[k-1], spec=FURN[key]; if (!spec) continue;
+      const D=spec[2], sx=ax1-ax0, sz=az1-az0; let bx0=ax0, bx1=ax1, bz0=az0, bz1=az1;
+      if (Math.min(sx,sz)>=0.35) { /* duas faces visíveis: a caixa já está completa */ }
+      else if (sx>=sz){ const want=Math.max(sz, D*0.9); if (moz<(az0+az1)/2){ bz0=az0; bz1=az0+want; } else { bz1=az1; bz0=az1-want; } if (sx<0.35){ const m=(ax0+ax1)/2; bx0=m-0.2; bx1=m+0.2; } }
+      else { const want=Math.max(sx, D*0.9); if (mox<(ax0+ax1)/2){ bx0=ax0; bx1=ax0+want; } else { bx1=ax1; bx0=ax1-want; } if (sz<0.35){ const m=(az0+az1)/2; bz0=m-0.2; bz1=m+0.2; } }
+      bx0=Math.max(bx0, rx0+0.04); bx1=Math.min(bx1, rx1-0.04); bz0=Math.max(bz0, rz0+0.04); bz1=Math.min(bz1, rz1-0.04);
+      if (bx1-bx0<0.2 || bz1-bz0<0.2) continue;
+      if (!pointInPoly([(bx0+bx1)/2,(bz0+bz1)/2], polyA)) continue;
+      boxes.push({key, b:[bx0,bz0,bx1,bz1], n:pts.length});
+    }
+  }
+  boxes.sort((p,q)=>q.n-p.n);
+  const merged=[];
+  for (const bx of boxes){
+    const o = merged.find(m=>m.key===bx.key && m.b[0]<bx.b[2] && m.b[2]>bx.b[0] && m.b[1]<bx.b[3] && m.b[3]>bx.b[1]);
+    if (o){ o.b=[Math.min(o.b[0],bx.b[0]),Math.min(o.b[1],bx.b[1]),Math.max(o.b[2],bx.b[2]),Math.max(o.b[3],bx.b[3])]; } else merged.push({key:bx.key, b:bx.b.slice()});
+  }
+  const items = merged.slice(0,25).map(m=>{ const [a0,b0,a1,b1]=m.b, sp=FURN[m.key]; return { key:m.key, name:sp[0], h:sp[3], pts:[bw(a0,b0),bw(a1,b0),bw(a1,b1),bw(a0,b1)] }; });
+
+  // --- cobertura do perímetro
+  const hash=new Set(); for (const p of P) if (p.t!=='f') hash.add(Math.floor(p.x/0.3)+','+Math.floor(p.z/0.3));
+  let cov=0, tot=0;
+  for (let i=0;i<n;i++){ const a=poly[i], b=poly[(i+1)%n], L=edgeLen(i), st=Math.max(1, Math.floor(L/0.25));
+    for (let q=0;q<st;q++){ const t=(q+0.5)/st, x=a[0]+(b[0]-a[0])*t, z=a[1]+(b[1]-a[1])*t, gx=Math.floor(x/0.3), gz=Math.floor(z/0.3); tot++;
+      let hit=false; for (let dx=-1;dx<=1&&!hit;dx++) for (let dz=-1;dz<=1&&!hit;dz++) if (hash.has((gx+dx)+','+(gz+dz))) hit=true;
+      if (hit || doors.some(d=>d.i===i && t>=d.t0 && t<=d.t1)) cov++; } }
+  const hs=A.heights.filter(v=>v>1.9&&v<4.5);
+  const height = hs.length>=6 ? median(hs) : null;
+  return { pts:poly, doors, items, height, coverage: tot ? cov/tot : 0, dbg:{th:th/DEG, xs, zs, leak} };
+}
+function suggestName(items){
+  const has = k => items.some(it=>it.key===k);
+  let base = null;
+  if (has('toilet')||has('bathtub')||has('shower')) base='Banheiro';
+  else if (has('bed')||has('cradle')||has('wardrobe')) base='Quarto';
+  else if (has('stove')||has('refrigerator')||has('oven')||has('dishwasher')) base='Cozinha';
+  else if (has('washer')) base='Área de serviço';
+  else if (has('sofa')||has('armchair')||has('television receiver')||has('coffee table')) base='Sala';
+  else if (has('desk')) base='Escritório';
+  else if (has('table')) base='Sala de jantar';
+  if (!base) return null;
+  let name=base, n=2; while (state.rooms.some(r=>r.name===name)) name=`${base} ${n++}`;
+  return name;
+}
+function finishAuto(){
+  const A=scan.auto; let est=null;
+  try { est = estimateRoom(A); } catch(e){ console.warn(e); }
+  if (!est) { toast(scan.mode==='sensor' ? 'Ainda não identifiquei paredes suficientes — continue girando devagar' : 'Ainda não identifiquei paredes suficientes — continue mostrando o cômodo'); return; }
+  let name = $('#roomName').value.trim();
+  if (!scan.nameDirty) name = suggestName(est.items) || name;
+  const room = { id:uid(), name: name || defaultRoomName(), pts:est.pts, height: Math.round((est.height || lastHeight())*100)/100,
+    color:nextColor(), mode:scan.mode, doors:est.doors, items:est.items };
+  commitRoom(room);
+}
+/* salva um cômodo (manual ou automático) e posiciona na planta */
+function commitRoom(room){
+  room.doors = room.doors || []; room.items = room.items || [];
+  if (scan.mode==='xr') {
+    scan.sessionRooms.push({ pts3: room.pts.map(([x,z])=>[x, scan.floorY, z]), height: room.height });
+    if (scan.sessionOffset===null) scan.sessionOffset = state.rooms.length ? besideOffset(room) : [0,0];
+    translateRoom(room, scan.sessionOffset[0], scan.sessionOffset[1]);
+  } else if (state.rooms.length) { const o=besideOffset(room); translateRoom(room, o[0], o[1]); }
+  state.rooms.push(room); state.selected = room.id; save();
+  scan.lastRoom = room; scan.stage='done';
+  const nd=room.doors.length, nf=room.items.length;
+  $('#doneTitle').textContent = `${room.name} salvo`;
+  $('#doneSub').textContent = scan.kind==='auto' ? 'Reconhecido automaticamente. Você pode ajustar nomes e medidas na planta.' : 'Siga para o próximo cômodo ou veja a planta.';
+  $('#doneArea').textContent = fmt(Math.abs(polyArea(room.pts)))+' m²';
+  $('#donePer').textContent = fmt(polyPerim(room.pts))+' m';
+  $('#doneH').textContent = fmt(room.height)+' m';
+  $('#doneW').textContent = room.pts.length; $('#doneD').textContent = nd; $('#doneF').textContent = nf;
+  $('#roomDone').classList.remove('hidden');
+  haptic(40); updateScanUI();
+}
+function besideOffset(room){ const b=bbox(state.rooms), rb=bboxPts(room.pts); return [b.x1 + 0.4 - rb.x0, b.z0 - rb.z0]; }
+
+/* =========================================================
+   SCAN MANUAL (marcar cantos) — alternativa
+   ========================================================= */
+function heightAt(c0){ const c=scan.cam; return c ? heightFrom(c.pos, c.f, c0) : null; }
 function computeReticle(){
   const c = scan.cam; scan.reticle = null;
   if (!c) return;
@@ -636,24 +1224,49 @@ function computeReticle(){
   const f = c.f; if (f[1] > -0.04) return;
   const t = (scan.floorY - c.pos[1]) / f[1]; if (t < 0 || t > 14) return;
   const p = [c.pos[0]+f[0]*t, scan.floorY, c.pos[2]+f[2]*t];
-  // limite de distância horizontal (modo sensores perde precisão perto do horizonte)
   if (scan.mode==='sensor' && dXZ(p, c.pos) > 9) return;
   scan.reticle = p;
-  if (scan.stage==='corners') {
-    const last = scan.dots[scan.dots.length-1];
-    if (!last || dXZ(last, p) > 0.18) { scan.dots.push(p); if (scan.dots.length > 900) scan.dots.shift(); }
+  if (scan.stage==='corners') { const last = scan.dots[scan.dots.length-1]; if (!last || dXZ(last, p) > 0.18) { scan.dots.push(p); if (scan.dots.length > 900) scan.dots.shift(); } }
+}
+function onMark(){
+  if (scan.kind==='auto') { if (scan.stage==='auto') finishAuto(); return; }
+  if (scan.stage==='corners'){
+    const R = scan.reticle; if (!R) { toast('Aponte a cruz para o chão'); return; }
+    const C = scan.corners;
+    if (C.length>=3 && dXZ(R, C[0]) < 0.3) { closeRoom(); return; }
+    if (C.length && dXZ(R, C[C.length-1]) < 0.15) { toast('Muito perto do canto anterior'); return; }
+    C.push(R.slice()); haptic(); updateScanUI();
+  } else if (scan.stage==='height'){
+    const h = scan.heightLive; if (!h || h<1.5 || h>6) { toast('Aponte para o encontro da parede com o teto'); return; }
+    haptic(); finishManual(h);
   }
 }
+function closeRoom(){ if (scan.corners.length < 3) { toast('Marque pelo menos 3 cantos'); return; } scan.stage='height'; haptic(30); updateScanUI(); }
+function onCloseBtn(){
+  if (scan.kind==='auto') { if (scan.stage==='auto') { scan.auto.paused = !scan.auto.paused; updateScanUI(); } return; }
+  if (scan.stage==='corners') closeRoom(); else if (scan.stage==='height') finishManual(lastHeight());
+}
+function onUndo(){
+  if (scan.kind==='auto') { if (scan.stage==='auto') { const keep = scan.mode==='xr' ? [] : null; scan.auto = newAuto(); if (keep) scan.auto.origins = keep; toast('Cômodo reiniciado'); updateScanUI(); } return; }
+  if (scan.stage==='height') { scan.stage='corners'; scan.heightLive=null; } else if (scan.corners.length) scan.corners.pop();
+  updateScanUI();
+}
+function finishManual(h){
+  let pts = scan.corners.map(p=>[p[0], p[2]]);
+  const sq = squarePoly(pts); if (sq.maxDev < 13) pts = sq.pts;
+  commitRoom({ id:uid(), name: ($('#roomName').value.trim() || defaultRoomName()), pts, height: Math.round(h*100)/100, color: nextColor(), mode: scan.mode, doors:[], items:[] });
+}
 
-/* ---------- desenho AR sobre a imagem ---------- */
+/* =========================================================
+   Desenho sobre a imagem da câmera
+   ========================================================= */
 function camSpace(p){ const c=scan.cam, v=sub(p, c.pos); return [dot(v,c.r), dot(v,c.u), dot(v,c.f)]; }
 function toScreen(q){ const c=scan.cam; return [c.cx + q[0]/q[2]*c.fx, c.cy - q[1]/q[2]*c.fy]; }
 function projPt(p){ const q=camSpace(p); return q[2] < 0.08 ? null : toScreen(q); }
 function projSeg(a,b){
   let A=camSpace(a), B=camSpace(b); const N=0.08;
   if (A[2]<N && B[2]<N) return null;
-  if (A[2]<N) A = lerp3(A, B, (N-A[2])/(B[2]-A[2]));
-  else if (B[2]<N) B = lerp3(B, A, (N-B[2])/(A[2]-B[2]));
+  if (A[2]<N) A = lerp3(A, B, (N-A[2])/(B[2]-A[2])); else if (B[2]<N) B = lerp3(B, A, (N-B[2])/(A[2]-B[2]));
   return [toScreen(A), toScreen(B)];
 }
 let octx, oW=0, oH=0;
@@ -662,24 +1275,22 @@ function fitOverlay(){
   if (W!==oW || H!==oH || !octx) { cv.width=W*dpr; cv.height=H*dpr; oW=W; oH=H; octx=cv.getContext('2d'); octx.setTransform(dpr,0,0,dpr,0,0); }
   return octx;
 }
-function line3(ctx,a,b,color,w,dash){
+function line3(ctx,a,b,color,w,dash,glow=true){
   const s = projSeg(a,b); if (!s) return null;
   ctx.save(); ctx.strokeStyle=color; ctx.lineWidth=w; ctx.lineCap='round';
   if (dash) ctx.setLineDash(dash);
-  ctx.shadowColor=color; ctx.shadowBlur= dash ? 0 : 8;
+  if (glow && !dash) { ctx.shadowColor=color; ctx.shadowBlur=8; }
   ctx.beginPath(); ctx.moveTo(s[0][0], s[0][1]); ctx.lineTo(s[1][0], s[1][1]); ctx.stroke(); ctx.restore();
   return s;
 }
-function pill(ctx, text, x, y, bg='rgba(0,0,0,.72)', fg='#fff'){
-  ctx.save(); ctx.font='600 13px ui-monospace,Menlo,monospace';
+function pill(ctx, text, x, y, bg='rgba(0,0,0,.72)', fg='#fff', font='600 13px ui-monospace,Menlo,monospace'){
+  ctx.save(); ctx.font=font;
   const w = ctx.measureText(text).width + 14;
   ctx.fillStyle=bg; ctx.beginPath();
   if (ctx.roundRect) ctx.roundRect(x-w/2, y-11, w, 22, 7); else ctx.rect(x-w/2, y-11, w, 22);
   ctx.fill(); ctx.fillStyle=fg; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(text, x, y+1); ctx.restore();
 }
-function segLabel(ctx, a, b, text, bg, fg){
-  const m = lerp3(a, b, 0.5), p = projPt(m); if (p) pill(ctx, text, p[0], p[1], bg, fg);
-}
+function segLabel(ctx, a, b, text, bg, fg){ const p = projPt(lerp3(a, b, 0.5)); if (p) pill(ctx, text, p[0], p[1], bg, fg); }
 function ring(ctx, center, r, color, w){
   ctx.save(); ctx.strokeStyle=color; ctx.lineWidth=w; ctx.beginPath(); let started=false;
   for (let i=0;i<=32;i++){ const a=i/32*Math.PI*2; const p=projPt([center[0]+Math.cos(a)*r, center[1], center[2]+Math.sin(a)*r]);
@@ -691,46 +1302,62 @@ function drawRoomWire(ctx, pts3, h, color, width, labels){
   for (let i=0;i<n;i++){
     const a=pts3[i], b=pts3[(i+1)%n];
     line3(ctx, a, b, color, width);
-    if (h) {
-      const at=[a[0],a[1]+h,a[2]], bt=[b[0],b[1]+h,b[2]];
-      line3(ctx, at, bt, color, width*0.7);
-      line3(ctx, a, at, color, width*0.7);
-    }
+    if (h) { const at=[a[0],a[1]+h,a[2]], bt=[b[0],b[1]+h,b[2]]; line3(ctx, at, bt, color, width*0.6); line3(ctx, a, at, color, width*0.6); }
     if (labels) segLabel(ctx, a, b, fmt(dXZ(a,b))+' m');
   }
 }
-const ACC='#3be8b0', ACC2='#ffb547';
+const ACC='#3be8b0', ACC2='#ffb547', VIO='#c4b5fd';
 function drawOverlay(){
   const ctx = fitOverlay(); ctx.clearRect(0,0,oW,oH);
-  const c = scan.cam;
-  if (!c) { updateReadout(); return; }
-
-  // pontos já escaneados no chão (rastro de cobertura)
+  if (!scan.cam) { updateReadout(); return; }
+  if (scan.kind==='auto') drawAuto(ctx); else drawManual(ctx);
+  updateReadout();
+}
+function drawTint(ctx){
+  const A=scan.auto, cv=A.tint; if (!cv) return;
+  ctx.save(); ctx.globalAlpha=0.33; ctx.imageSmoothingEnabled=true;
+  if (A.tintMode==='video') { const v=$('#video'), vw=v.videoWidth||oW, vh=v.videoHeight||oH, s=Math.max(oW/vw, oH/vh), dw=vw*s, dh=vh*s; ctx.drawImage(cv, (oW-dw)/2, (oH-dh)/2, dw, dh); }
+  else ctx.drawImage(cv, 0, 0, oW, oH);
+  ctx.restore();
+}
+function drawAuto(ctx){
+  const A=scan.auto; if (!A) return;
+  const y = scan.mode==='xr' ? scan.floorY : 0;
+  if (state.settings.showSeg && scan.stage==='auto') drawTint(ctx);
+  if (scan.mode==='xr') for (const r of scan.sessionRooms) drawRoomWire(ctx, r.pts3, r.height, 'rgba(255,255,255,.6)', 2, false);
+  if (y===null) return;
+  // pontos detectados no chão
+  const n=A.pts.length, start=Math.max(0, n-2500);
+  for (let q=start;q<n;q++){ const p=A.pts[q], s=projPt([p.x,y,p.z]); if (!s || s[0]<-4 || s[1]<-4 || s[0]>oW+4 || s[1]>oH+4) continue;
+    ctx.fillStyle = p.t==='w' ? 'rgba(59,232,176,.85)' : p.t==='d' ? 'rgba(255,181,71,.95)' : 'rgba(196,181,253,.9)'; ctx.fillRect(s[0]-1.6, s[1]-1.6, 3.2, 3.2); }
+  const E = scan.stage==='done' && scan.lastRoom ? null : A.est;
+  if (!E) return;
+  const H = E.height || lastHeight(), P3 = E.pts.map(([x,z])=>[x,y,z]);
+  drawRoomWire(ctx, P3, H, ACC, 3, true);
+  for (const d of E.doors){ const w=doorWorld({pts:E.pts}, d); if (!w) continue; const [a,b]=w, dh=Math.min(DOOR_H, H-0.05);
+    const a0=[a[0],y,a[1]], b0=[b[0],y,b[1]], a1=[a[0],y+dh,a[1]], b1=[b[0],y+dh,b[1]];
+    line3(ctx,a0,a1,ACC2,3.5); line3(ctx,b0,b1,ACC2,3.5); line3(ctx,a1,b1,ACC2,3.5); line3(ctx,a0,b0,ACC2,4);
+    const p=projPt(lerp3(a1,b1,0.5)); if (p) pill(ctx, (d.kind==='porta'?'Porta ':'Passagem ')+fmt(d2(a,b))+' m', p[0], p[1]-14, 'rgba(255,181,71,.95)', '#2e1c00', '700 12px system-ui,sans-serif'); }
+  if (state.settings.showFurn) for (const it of E.items){ const b3=it.pts.map(([x,z])=>[x,y,z]), t3=it.pts.map(([x,z])=>[x,y+it.h,z]), col=VIO;
+    for (let i=0;i<4;i++){ line3(ctx,b3[i],b3[(i+1)%4],col,2,null,false); line3(ctx,t3[i],t3[(i+1)%4],col,2,null,false); line3(ctx,b3[i],t3[i],col,1.5,null,false); }
+    const c=it.pts.reduce((s,q)=>[s[0]+q[0]/4,s[1]+q[1]/4],[0,0]), p=projPt([c[0],y+it.h,c[1]]); if (p) pill(ctx, it.name, p[0], p[1]-12, 'rgba(60,40,110,.88)', '#fff', '700 12px system-ui,sans-serif'); }
+}
+function drawManual(ctx){
+  const c=scan.cam;
   ctx.fillStyle='rgba(59,232,176,.5)';
   for (const d of scan.dots){ const p=projPt(d); if(p && p[0]>-10 && p[0]<oW+10 && p[1]>-10 && p[1]<oH+10){ ctx.beginPath(); ctx.arc(p[0],p[1],2.2,0,7); ctx.fill(); } }
-
-  // cômodos anteriores (mesmo espaço de coordenadas no modo AR)
   if (scan.mode==='xr') for (const r of scan.sessionRooms) drawRoomWire(ctx, r.pts3, r.height, 'rgba(255,255,255,.75)', 2, false);
-
-  // grade no chão em volta do alvo
   const R = scan.reticle;
   if (R && scan.stage==='corners') {
     const gx=Math.round(R[0]*2)/2, gz=Math.round(R[2]*2)/2, y=R[1];
-    for (let i=-3;i<=3;i++){
-      const alpha = 0.28 - Math.abs(i)*0.06;
-      line3(ctx,[gx+i*0.5,y,gz-1.5],[gx+i*0.5,y,gz+1.5],`rgba(255,255,255,${alpha})`,1);
-      line3(ctx,[gx-1.5,y,gz+i*0.5],[gx+1.5,y,gz+i*0.5],`rgba(255,255,255,${alpha})`,1);
-    }
+    for (let i=-3;i<=3;i++){ const al=0.28-Math.abs(i)*0.06;
+      line3(ctx,[gx+i*0.5,y,gz-1.5],[gx+i*0.5,y,gz+1.5],`rgba(255,255,255,${al})`,1,null,false);
+      line3(ctx,[gx-1.5,y,gz+i*0.5],[gx+1.5,y,gz+i*0.5],`rgba(255,255,255,${al})`,1,null,false); }
   }
-
-  // cômodo atual
-  const C = scan.corners, n = C.length;
-  const hKnown = scan.lastRoom ? scan.lastRoom.height : null;
+  const C=scan.corners, n=C.length, hKnown=scan.lastRoom ? scan.lastRoom.height : null;
   for (let i=0;i<n-1;i++){ line3(ctx, C[i], C[i+1], ACC, 4); segLabel(ctx, C[i], C[i+1], fmt(dXZ(C[i],C[i+1]))+' m'); }
   if ((scan.stage==='height' || scan.stage==='done') && n>=3){ line3(ctx, C[n-1], C[0], ACC, 4); segLabel(ctx, C[n-1], C[0], fmt(dXZ(C[n-1],C[0]))+' m'); }
-  if (scan.stage==='done' && hKnown) drawRoomWire(ctx, C, hKnown, ACC, 3, false);
-
-  // linha elástica até o alvo
+  if (scan.stage==='done' && hKnown && n) drawRoomWire(ctx, C, hKnown, ACC, 3, false);
   let closing=false;
   if (R && scan.stage==='corners' && n){
     closing = n>=3 && dXZ(R, C[0]) < 0.3;
@@ -739,141 +1366,124 @@ function drawOverlay(){
     segLabel(ctx, C[n-1], target, fmt(dXZ(C[n-1], target))+' m', 'rgba(59,232,176,.92)', '#04261b');
     if (n>=3 && !closing) line3(ctx, R, C[0], 'rgba(255,255,255,.45)', 2, [4,8]);
   }
-  // cantos
   C.forEach((p,i)=>{ const s=projPt(p); if(!s) return; ctx.beginPath(); ctx.fillStyle= i===0 ? ACC2 : ACC; ctx.arc(s[0],s[1], i===0?8:6, 0, 7); ctx.fill(); ctx.lineWidth=2; ctx.strokeStyle='#04261b'; ctx.stroke(); });
-
-  // medição do pé-direito
   if (scan.stage==='height' && n){
-    const hL = scan.heightLive, base = C[0];
-    if (hL && hL > 0.3 && hL < 8){
-      const ok = hL >= 1.8 && hL <= 5;
-      const col = ok ? ACC2 : '#ff6b6b';
-      const top = [base[0], base[1]+hL, base[2]];
+    const hL=scan.heightLive, base=C[0];
+    if (hL && hL>0.3 && hL<8){ const ok=hL>=1.8&&hL<=5, col=ok?ACC2:'#ff6b6b', top=[base[0],base[1]+hL,base[2]];
       line3(ctx, base, top, col, 4);
       for (let i=0;i<n;i++){ const a=C[i], b=C[(i+1)%n]; line3(ctx,[a[0],a[1]+hL,a[2]],[b[0],b[1]+hL,b[2]], col, 2, [8,6]); }
-      const s = projPt(top); if (s){ ctx.beginPath(); ctx.fillStyle=col; ctx.arc(s[0],s[1],7,0,7); ctx.fill(); }
-      segLabel(ctx, base, top, 'Pé-direito '+fmt(hL)+' m', col, '#1d1200');
-    }
+      segLabel(ctx, base, top, 'Pé-direito '+fmt(hL)+' m', col, '#1d1200'); }
   }
-
-  // alvo no chão
-  if (R && scan.stage==='corners'){
-    const col = closing ? ACC2 : ACC;
-    ring(ctx, closing ? C[0] : R, 0.16, col, 3);
-    ring(ctx, closing ? C[0] : R, 0.05, '#fff', 2);
-  }
-  updateReadout(closing);
+  if (R && scan.stage==='corners'){ const col=closing?ACC2:ACC; ring(ctx, closing?C[0]:R, 0.16, col, 3); ring(ctx, closing?C[0]:R, 0.05, '#fff', 2); }
+  scan._closing = closing;
 }
-function updateReadout(closing){
-  const now = performance.now(); if (now - scan.lastReadout < 120) return; scan.lastReadout = now;
-  const c = scan.cam, R = scan.reticle, C = scan.corners, out = [];
+function updateReadout(){
+  const now=performance.now(); if (now - scan.lastReadout < 150) return; scan.lastReadout = now;
+  const out=[], hint=$('#hint');
+  if (scan.kind==='auto') {
+    const A=scan.auto, E=A && A.est, st=scan.stage;
+    const cov = E ? E.coverage : 0;
+    $('#covbar').firstElementChild.style.width = Math.round(cov*100)+'%';
+    if (E) {
+      out.push(`<span>Cobertura <b>${Math.round(cov*100)}%</b></span>`);
+      out.push(`<span>Paredes <b>${E.pts.length}</b></span>`, `<span>Portas <b>${E.doors.length}</b></span>`, `<span>Móveis <b>${E.items.length}</b></span>`);
+      if (E.height) out.push(`<span>Pé-direito <b>${fmt(E.height)} m</b></span>`);
+    } else if (st==='auto') out.push(`<span>Pontos <b>${A ? A.pts.length : 0}</b></span>`);
+    $('#readout').innerHTML = out.join('');
+    const fps = A ? A.frameTimes.length/3 : 0;
+    const iaTxt = scan.mode==='sim' ? 'IA simulada' : AI.status==='ready' ? `IA ${AI.device==='webgpu'?'WebGPU':'WASM'} · ${fmt(fps,1)} q/s` : AI.status==='loading' ? `IA carregando ${Math.round(AI.prog*100)}%` : 'IA indisponível';
+    $('#counter').innerHTML = `<b style="color:#3be8b0">●</b> parede &nbsp;<b style="color:#ffb547">●</b> porta &nbsp;<b style="color:#c4b5fd">●</b> móvel &nbsp;·&nbsp; ${iaTxt}`;
+    $('#btnMark').disabled = !(st==='auto' && E);
+    let h;
+    const sensor = scan.mode==='sensor';
+    if (st==='floor') h='Aponte para o chão e mova o celular devagar até o AR reconhecer o piso.';
+    else if (st==='done') h='Cômodo salvo ✓';
+    else if (scan.mode!=='sim' && AI.status!=='ready') h='Carregando a IA de reconhecimento…';
+    else if (A.paused) h='Pausado — toque em “Continuar” para seguir escaneando.';
+    else if (A.fast) h='Gire mais devagar para a IA acompanhar.';
+    else if (A.noFloor>5) h='Incline o celular para baixo: preciso ver o chão e a base das paredes.';
+    else if (E && cov>=0.85) h='Cômodo completo ✓ Toque em “Concluir cômodo”.';
+    else if (E) h = sensor ? 'Continue girando devagar para completar as paredes que faltam.' : scan.mode==='sim' ? 'A câmera virtual continua girando para cobrir todas as paredes.' : 'Continue andando devagar para completar as paredes que faltam.';
+    else h = sensor ? 'Fique parado no centro do cômodo e gire devagar, mostrando onde as paredes encontram o chão.' : scan.mode==='sim' ? 'Simulação: a câmera virtual gira sozinha pelo cômodo e a IA reconhece tudo.' : 'Ande devagar pelo cômodo apontando para onde as paredes encontram o chão.';
+    hint.textContent = h;
+    return;
+  }
+  // manual
+  const c=scan.cam, R=scan.reticle, C=scan.corners, closing=scan._closing;
   if (!c) out.push(scan.mode==='sensor' ? '<span>Aguardando sensores…</span>' : '<span>Procurando superfícies…</span>');
   else if (scan.stage==='height') out.push(`<span>Pé-direito <b>${scan.heightLive ? fmt(scan.heightLive)+' m' : '—'}</b></span>`);
-  else if (R) {
-    out.push(`<span>Distância <b>${fmt(dXZ(R, c.pos))} m</b></span>`);
-    if (C.length) out.push(`<span>Parede <b>${fmt(dXZ(R, C[C.length-1]))} m</b></span>`);
-  } else if (scan.stage==='corners') out.push('<span>Aponte mais para o chão</span>');
+  else if (R) { out.push(`<span>Distância <b>${fmt(dXZ(R, c.pos))} m</b></span>`); if (C.length) out.push(`<span>Parede <b>${fmt(dXZ(R, C[C.length-1]))} m</b></span>`); }
+  else if (scan.stage==='corners') out.push('<span>Aponte mais para o chão</span>');
   $('#readout').innerHTML = out.join('');
   const btn = $('#btnMark');
   if (scan.stage==='corners') { btn.textContent = closing ? 'Fechar aqui' : 'Marcar canto'; btn.disabled = !R; }
-  else if (scan.stage==='height') { btn.disabled = !(scan.heightLive && scan.heightLive>=1.5 && scan.heightLive<=6); }
+  else if (scan.stage==='height') btn.disabled = !(scan.heightLive && scan.heightLive>=1.5 && scan.heightLive<=6);
 }
 function updateScanUI(){
-  const st = scan.stage, n = scan.corners.length, mark=$('#btnMark'), close=$('#btnClose'), undo=$('#btnUndo'), hint=$('#hint');
-  const sensor = scan.mode==='sensor';
-  mark.className='btn primary'; close.className='btn';
-  $('#cross').classList.toggle('hidden', st==='done');
+  const st=scan.stage, n=scan.corners.length, mark=$('#btnMark'), close=$('#btnClose'), undo=$('#btnUndo'), hint=$('#hint');
+  const auto = scan.kind==='auto';
+  $('#cross').classList.toggle('hidden', st==='done' || auto);
   $('#scanBottom').classList.toggle('hidden', st==='done');
-  if (st==='floor') {
-    hint.textContent='Mova o celular devagar, apontando para o chão, até o alvo aparecer.';
-    mark.textContent='Marcar canto'; mark.disabled=true; close.textContent='Fechar cômodo'; close.disabled=true; undo.disabled=true;
-  } else if (st==='corners') {
-    hint.textContent = n===0 ? (sensor ? 'Fique no meio do cômodo. Aponte a cruz para um canto do chão e toque em “Marcar canto”.' : 'Aponte a cruz para um canto do chão e toque em “Marcar canto”.')
-                    : n<3 ? 'Agora o próximo canto, seguindo a parede.' : 'Continue marcando os cantos ou toque em “Fechar cômodo”.';
-    mark.textContent='Marcar canto'; close.textContent='Fechar cômodo'; close.disabled = n<3; undo.disabled = n===0;
-  } else if (st==='height') {
-    hint.textContent='Aponte a cruz para o canto do teto, logo acima do ponto laranja, e toque em “Marcar teto”.';
-    mark.textContent='Marcar teto'; mark.className='btn warn';
-    const def = lastHeight();
-    close.textContent=`Pular (${fmt(def)} m)`; close.disabled=false; undo.disabled=false;
-  } else hint.textContent='Cômodo salvo ✓';
-  $('#counter').textContent = `${state.rooms.length} cômodo${state.rooms.length===1?'':'s'} · ${n} canto${n===1?'':'s'}`;
-}
-function lastHeight(){ const r = state.rooms[state.rooms.length-1]; return r ? r.height : DEFAULT_H; }
-
-function onMark(){
-  if (scan.stage==='corners'){
-    const R = scan.reticle; if (!R) { toast('Aponte a cruz para o chão'); return; }
-    const C = scan.corners;
-    if (C.length>=3 && dXZ(R, C[0]) < 0.3) { closeRoom(); return; }
-    if (C.length && dXZ(R, C[C.length-1]) < 0.15) { toast('Muito perto do canto anterior'); return; }
-    C.push(R.slice()); haptic(); updateScanUI();
-  } else if (scan.stage==='height'){
-    const h = scan.heightLive; if (!h || h<1.5 || h>6) { toast('Aponte para o encontro da parede com o teto'); return; }
-    haptic(); finishRoom(h);
+  $('#btnSeg').classList.toggle('hidden', !auto);
+  $('#btnSeg').classList.toggle('on', state.settings.showSeg);
+  $('#covbar').classList.toggle('hidden', !auto);
+  mark.className='btn primary'; close.className='btn';
+  if (auto) {
+    undo.textContent='↺ Recomeçar'; mark.textContent='Concluir cômodo';
+    close.textContent = scan.auto && scan.auto.paused ? '▶ Continuar' : '⏸ Pausar';
+    undo.disabled = st!=='auto'; close.disabled = st!=='auto'; mark.disabled = !(st==='auto' && scan.auto && scan.auto.est);
+    scan.lastReadout = 0;
+  } else {
+    undo.textContent='↶ Desfazer';
+    if (st==='floor') { hint.textContent='Mova o celular devagar, apontando para o chão, até o alvo aparecer.'; mark.textContent='Marcar canto'; mark.disabled=true; close.textContent='Fechar cômodo'; close.disabled=true; undo.disabled=true; }
+    else if (st==='corners') {
+      hint.textContent = n===0 ? (scan.mode==='sensor' ? 'Fique no meio do cômodo. Aponte a cruz para um canto do chão e toque em “Marcar canto”.' : 'Aponte a cruz para um canto do chão e toque em “Marcar canto”.')
+                      : n<3 ? 'Agora o próximo canto, seguindo a parede.' : 'Continue marcando os cantos ou toque em “Fechar cômodo”.';
+      mark.textContent='Marcar canto'; close.textContent='Fechar cômodo'; close.disabled = n<3; undo.disabled = n===0;
+    } else if (st==='height') {
+      hint.textContent='Aponte a cruz para o canto do teto, logo acima do ponto laranja, e toque em “Marcar teto”.';
+      mark.textContent='Marcar teto'; mark.className='btn warn'; close.textContent=`Pular (${fmt(lastHeight())} m)`; close.disabled=false; undo.disabled=false;
+    } else hint.textContent='Cômodo salvo ✓';
+    $('#counter').textContent = `${state.rooms.length} cômodo${state.rooms.length===1?'':'s'} · ${n} canto${n===1?'':'s'}`;
   }
-}
-function closeRoom(){
-  if (scan.corners.length < 3) { toast('Marque pelo menos 3 cantos'); return; }
-  scan.stage='height'; haptic(30); updateScanUI();
-}
-function onCloseBtn(){
-  if (scan.stage==='corners') closeRoom();
-  else if (scan.stage==='height') finishRoom(lastHeight());
-}
-function onUndo(){
-  if (scan.stage==='height') { scan.stage='corners'; scan.heightLive=null; }
-  else if (scan.corners.length) scan.corners.pop();
-  updateScanUI();
-}
-function finishRoom(h){
-  let pts = scan.corners.map(p=>[p[0], p[2]]);
-  const sq = squarePoly(pts);
-  if (sq.maxDev < 13) pts = sq.pts;          // corrige pequenos erros de mira em cantos de 90°
-  const room = { id:uid(), name: ($('#roomName').value.trim() || defaultRoomName()), pts, height: Math.round(h*100)/100, color: nextColor(), mode: scan.mode };
-  // posicionamento na planta
-  if (scan.mode==='xr') {
-    scan.sessionRooms.push({ pts3: pts.map(([x,z])=>[x, scan.floorY, z]), height: room.height });
-    if (scan.sessionOffset===null) scan.sessionOffset = state.rooms.length ? besideOffset(room) : [0,0];
-    translateRoom(room, scan.sessionOffset[0], scan.sessionOffset[1]);
-  } else if (state.rooms.length) {
-    const o = besideOffset(room); translateRoom(room, o[0], o[1]);
-  }
-  state.rooms.push(room); state.selected = room.id; save();
-  scan.lastRoom = room; scan.stage='done';
-  const C = scan.corners; if (sq.maxDev < 13 && scan.mode==='sensor') { /* mantém o desenho original na tela */ }
-  $('#doneTitle').textContent = `${room.name} salvo`;
-  $('#doneArea').textContent = fmt(Math.abs(polyArea(room.pts)))+' m²';
-  $('#donePer').textContent = fmt(polyPerim(room.pts))+' m';
-  $('#doneH').textContent = fmt(room.height)+' m';
-  $('#roomDone').classList.remove('hidden');
-  updateScanUI();
-}
-function besideOffset(room){
-  const b = bbox(state.rooms), rb = bbox([room]);
-  return [b.x1 + 0.4 - rb.x0, b.z0 - rb.z0];
 }
 function stopScan(){
   scan.active=false;
   window.removeEventListener('deviceorientation', onOrient);
   if (scan.stream) { scan.stream.getTracks().forEach(t=>t.stop()); scan.stream=null; }
-  const v=$('#video'); v.srcObject=null;
+  $('#video').srcObject=null;
   if (scan.xrSession) { const s=scan.xrSession; scan.xrSession=null; s.end().catch(()=>{}); }
-  cleanupXR();
+  cleanupXR(); $('#aiLoad').classList.add('hidden');
 }
 function goAfterScan(){ if (state.rooms.length) openPlan(); else showScreen('home'); refreshHome(); }
 function exitScan(){
   const finish = () => { stopScan(); goAfterScan(); };
-  if (scan.corners.length && scan.stage!=='done') modal({ title:'Sair do scan?', text:'O cômodo que está sendo marcado será descartado. Os cômodos já salvos continuam no projeto.',
+  const pending = scan.stage!=='done' && (scan.kind==='auto' ? (scan.auto && scan.auto.pts.length>50) : scan.corners.length>0);
+  if (pending) modal({ title:'Sair do scan?', text:'O cômodo que está sendo escaneado será descartado. Os cômodos já salvos continuam no projeto.',
     buttons:[{label:'Continuar escaneando'},{label:'Sair', cls:'primary', onClick:finish}] });
   else finish();
 }
 function showScanError(msg){ stopScan(); showScreen('scan'); $('#scanErrMsg').textContent=msg; $('#scanErr').classList.remove('hidden'); $('#scanTips').classList.add('hidden'); }
-let tipsShown = false;
+let tipsShown = {};
 function showTips(){
-  if (tipsShown) return; tipsShown = true;
-  const sensor = scan.mode==='sensor';
-  const items = sensor ? [
+  const key = scan.kind + scan.mode; if (tipsShown[key]) return; tipsShown[key] = true;
+  let items;
+  if (scan.kind==='auto') items = scan.mode==='sensor' ? [
+    'Fique em pé no centro do cômodo, com o celular na altura do peito e um pouco inclinado para baixo.',
+    'Gire o corpo devagar (uma volta completa), mostrando onde as paredes encontram o chão.',
+    'A IA desenha as paredes (verde), portas (laranja) e móveis (lilás) sobre a imagem. Não precisa marcar nada.',
+    'Quando a barra de cobertura encher, toque em “Concluir cômodo”. Para o pé-direito, mostre também o teto.'
+  ] : scan.mode==='sim' ? [
+    'Esta é uma simulação: um cômodo virtual no lugar da câmera.',
+    'A câmera virtual gira sozinha e o mesmo algoritmo do scan real reconhece paredes, portas, passagens e móveis.',
+    'Veja as linhas aparecendo sobre a imagem e a planta sendo montada. Ao final, ela abre na tela de plantas.'
+  ] : [
+    'Aponte para o chão e mova o celular devagar até o AR reconhecer o piso.',
+    'Ande devagar pelo cômodo mostrando onde as paredes encontram o chão. Não precisa marcar nada.',
+    'A IA desenha as paredes (verde), portas (laranja) e móveis (lilás) sobre a imagem.',
+    'Quando a barra de cobertura encher, toque em “Concluir cômodo” e siga para o próximo — todos ficam na mesma planta.'
+  ];
+  else items = scan.mode==='sensor' ? [
     'Fique em pé no centro do cômodo, segurando o celular na altura do peito.',
     'Não ande: apenas gire o corpo para mirar cada canto do chão, em sequência.',
     'Volte ao primeiro canto (laranja) ou toque em “Fechar cômodo”.',
@@ -881,34 +1491,143 @@ function showTips(){
   ] : [
     'Aponte para o chão e mova o celular devagar até a grade aparecer.',
     'Caminhe pelo cômodo marcando cada canto do chão, seguindo as paredes.',
-    'Volte ao primeiro canto (laranja) ou toque em “Fechar cômodo”.',
-    'Você pode passar para o próximo cômodo sem sair do AR — todos ficam na mesma planta.'
+    'Volte ao primeiro canto (laranja) ou toque em “Fechar cômodo”.'
   ];
   $('#tipsList').innerHTML = items.map(t=>`<li><div>${esc(t)}</div></li>`).join('');
   $('#scanTips').classList.remove('hidden');
 }
 
 /* =========================================================
+   SIMULAÇÃO (cômodo virtual no lugar da câmera)
+   ========================================================= */
+const SIM = {
+  H: 2.60, eye: 1.40, cam: [2.7, 2.05],
+  poly: [[0,0],[5.2,0],[5.2,4.4],[1.8,4.4],[1.8,3.4],[0,3.4]],
+  doors: [{i:0, a:1.0, b:1.9}],
+  openings: [{i:1, a:1.6, b:2.8}],
+  beyond: [[[5.2,1.2],[7.6,1.2]], [[7.6,1.2],[7.6,3.4]], [[7.6,3.4],[5.2,3.4]]],
+  boxes: [ {k:'sofa', x0:0.25,x1:2.25,z0:2.45,z1:3.35,h:0.85}, {k:'table', x0:3.3,x1:4.5,z0:0.55,z1:1.35,h:0.75},
+           {k:'chair', x0:3.65,x1:4.15,z0:1.5,z1:2.0,h:0.9}, {k:'bookcase', x0:4.8,x1:5.17,z0:3.2,z1:4.35,h:1.9},
+           {k:'coffee table', x0:0.6,x1:1.6,z0:1.4,z1:2.0,h:0.45} ],
+  colors: { 1:[150,118,88], 2:[226,222,214], 3:[139,92,52], 4:[244,242,236], 6:[180,210,240] },
+  furnColors: { sofa:[84,112,170], table:[150,110,72], chair:[170,128,88], bookcase:[112,88,66], 'coffee table':[120,90,60] }
+};
+function simHit(o, d){
+  let best={t:Infinity, cat:0, k:0, n:[0,1,0], col:null};
+  if (d[1] < -1e-6){ const t=-o[1]/d[1]; if (t<best.t) best={t, cat:CAT.FLOOR, k:0, n:[0,1,0]}; }
+  if (d[1] > 1e-6){ const t=(SIM.H-o[1])/d[1]; if (t<best.t) best={t, cat:CAT.CEIL, k:0, n:[0,-1,0]}; }
+  const wallHit=(a,b,isRoom,i)=>{
+    const rx=d[0], rz=d[2], sx=b[0]-a[0], sz=b[1]-a[1], den=rx*sz-rz*sx; if (Math.abs(den)<1e-9) return;
+    const qx=a[0]-o[0], qz=a[1]-o[2], t=(qx*sz-qz*sx)/den, s=(qx*rz-qz*rx)/den;
+    if (t<=1e-4 || s<0 || s>1 || t>=best.t) return;
+    const y=o[1]+d[1]*t; if (y<0 || y>SIM.H) return;
+    const L=Math.hypot(sx,sz), sm=s*L; let cat=CAT.WALL;
+    if (isRoom){
+      if (SIM.openings.some(q=>q.i===i && sm>=q.a && sm<=q.b && y<=DOOR_H)) return;
+      if (SIM.doors.some(q=>q.i===i && sm>=q.a && sm<=q.b && y<=DOOR_H)) cat=CAT.DOOR;
+    }
+    let n=[-sz/L,0,sx/L]; if (dot(n,d)>0) n=mulS(n,-1);
+    best={t, cat, k:0, n};
+  };
+  const pl=SIM.poly; for (let i=0;i<pl.length;i++) wallHit(pl[i], pl[(i+1)%pl.length], true, i);
+  for (const sg of SIM.beyond) wallHit(sg[0], sg[1], false, -1);
+  for (const bx of SIM.boxes){
+    let t0=-Infinity, t1=Infinity, nIn=null;
+    const ax=[[0,bx.x0,bx.x1],[1,0,bx.h],[2,bx.z0,bx.z1]];
+    let ok=true;
+    for (const [ai,mn,mx] of ax){
+      if (Math.abs(d[ai])<1e-9){ if (o[ai]<mn||o[ai]>mx){ ok=false; break; } continue; }
+      let ta=(mn-o[ai])/d[ai], tb=(mx-o[ai])/d[ai], na=[0,0,0]; na[ai]=-1;
+      if (ta>tb){ [ta,tb]=[tb,ta]; na[ai]=1; }
+      if (ta>t0){ t0=ta; nIn=na; } t1=Math.min(t1,tb); if (t0>t1){ ok=false; break; }
+    }
+    if (ok && t0>1e-4 && t0<best.t) best={t:t0, cat:CAT.FURN, k:FURN_KEYS.indexOf(bx.k)+1, n:nIn, key:bx.k};
+  }
+  return best;
+}
+function simCamAt(yaw, pitch, W, H){
+  const cp=Math.cos(pitch), f=[Math.sin(yaw)*cp, Math.sin(pitch), -Math.cos(yaw)*cp];
+  const r=norm(cross(f,[0,1,0])), u=cross(r,f), focal=(Math.max(W,H)/2)/Math.tan(FOV_LONG/2);
+  return { pos:[SIM.cam[0], SIM.eye, SIM.cam[1]], r, u, f, fx:focal, fy:focal, cx:W/2, cy:H/2 };
+}
+function renderSimInto(img, W, H, c){
+  const L=norm([0.4,0.8,0.3]), data=img.data;
+  for (let y=0;y<H;y++) for (let x=0;x<W;x++){
+    const d=norm(add(add(c.f, mulS(c.r,(x+0.5-c.cx)/c.fx)), mulS(c.u,-(y+0.5-c.cy)/c.fy)));
+    const h=simHit(c.pos, d); let col = h.cat===CAT.FURN ? (SIM.furnColors[h.key]||[150,120,200]) : (SIM.colors[h.cat]||[40,40,50]);
+    let sh = 0.62 + 0.38*Math.abs(dot(h.n, L)); if (h.cat===CAT.FLOOR) sh *= 0.92 + 0.08*((Math.floor((c.pos[0]+d[0]*h.t)*4) + Math.floor((c.pos[2]+d[2]*h.t)*0.8))%2);
+    const fog = isFinite(h.t) ? Math.exp(-h.t*0.05) : 0.4, i=(y*W+x)*4;
+    data[i]=col[0]*sh*fog; data[i+1]=col[1]*sh*fog; data[i+2]=col[2]*sh*fog; data[i+3]=255;
+  }
+}
+const simCv = document.createElement('canvas');
+function startSim(){
+  stopScan();
+  scan.kind='auto'; scan.mode='sim'; scan.floorY=0; scan.sessionRooms=[]; scan.sessionOffset=null; scan.cam=null;
+  ['#scanErr','#roomDone','#scanTips','#aiLoad'].forEach(s=>$(s).classList.add('hidden'));
+  $('#video').classList.add('hidden'); $('#simbg').classList.remove('hidden');
+  showScreen('scan'); setBadge();
+  scan.active=true; scan.sim={ t0: performance.now(), done:false, lastBg:0 };
+  resetRoom(); showTips();
+  requestAnimationFrame(simLoop);
+}
+function simPose(ms){ const T=ms/1000; return { yaw: -0.4 + T/26*Math.PI*2, pitch: (-20 - 18*Math.cos(T/5.5*Math.PI*2))*DEG, turns: T/26 }; }
+function simLoop(){
+  if (!scan.active || scan.mode!=='sim') return;
+  requestAnimationFrame(simLoop);
+  const S=scan.sim, tips=!$('#scanTips').classList.contains('hidden');
+  if (tips) { S.t0 = performance.now() - (S.tPaused||0); } else S.tPaused = performance.now()-S.t0;
+  const paused = scan.auto && scan.auto.paused;
+  if (paused) S.t0 = performance.now() - S.tPaused;
+  const ms = performance.now() - S.t0, pose = simPose(ms), W=innerWidth, H=innerHeight;
+  scan.cam = simCamAt(pose.yaw, pose.pitch, W, H);
+  // fundo: renderização do cômodo virtual
+  const now=performance.now();
+  if (now - S.lastBg > 33) { S.lastBg = now;
+    const bw=110, bh=Math.round(bw*H/W), cv=$('#simbg');
+    if (simCv.width!==bw || simCv.height!==bh){ simCv.width=bw; simCv.height=bh; }
+    const sctx=simCv.getContext('2d'), img=sctx.createImageData(bw,bh), sc=simCamAt(pose.yaw, pose.pitch, bw, bh);
+    renderSimInto(img, bw, bh, sc); sctx.putImageData(img,0,0);
+    const dpr=Math.min(devicePixelRatio||1,2); if (cv.width!==Math.round(W*dpr)) { cv.width=Math.round(W*dpr); cv.height=Math.round(H*dpr); }
+    const c2=cv.getContext('2d'); c2.imageSmoothingEnabled=true; c2.drawImage(simCv,0,0,cv.width,cv.height);
+  }
+  // "IA" simulada: rótulos exatos do cômodo virtual, com pequeno ruído de pose
+  if (scan.stage==='auto' && !tips && aiWantsFrame()) {
+    const A=scan.auto, aw=Math.round(80*W/H) || 40, ah=80, trueCam=simCamAt(pose.yaw, pose.pitch, aw, ah);
+    const cat=new Uint8Array(aw*ah), cls=new Uint8Array(aw*ah);
+    for (let i=0;i<ah;i++) for (let j=0;j<aw;j++){
+      const d=norm(add(add(trueCam.f, mulS(trueCam.r,(j+0.5-trueCam.cx)/trueCam.fx)), mulS(trueCam.u,-(i+0.5-trueCam.cy)/trueCam.fy)));
+      const h=simHit(trueCam.pos, d); cat[i*aw+j]=h.cat; cls[i*aw+j]=h.k||0; }
+    const jit=()=> (Math.random()-0.5)*0.008;
+    const fN=norm(add(trueCam.f,[jit(),jit(),jit()])), rN=norm(cross(fN,[0,1,0])), uN=cross(rN,fN);
+    const fc={ pos:trueCam.pos.slice(), r:rN, u:uN, f:fN, kx:aw/trueCam.fx, ky:ah/trueCam.fy, ox:0.5, oy:0.5, floorY:0 };
+    AI.busy=true;
+    setTimeout(()=>{ AI.busy=false; if (scan.auto!==A || !scan.active) return; integrate({w:aw,h:ah,cat,cls}, fc); makeTint({w:aw,h:ah,cat}, 'full');
+      const t=performance.now(); A.frameTimes.push(t); while (A.frameTimes.length && t-A.frameTimes[0]>3000) A.frameTimes.shift(); A.lastAI=t; }, 90);
+  }
+  autoTick();
+  if (scan.stage==='auto' && pose.turns>1.25 && scan.auto.est && !S.done) { S.done=true; finishAuto(); }
+  drawOverlay();
+}
+
+/* =========================================================
    PLANTA 2D
    ========================================================= */
 function selRoom(){ return state.rooms.find(r=>r.id===state.selected) || null; }
-function openPlan(){
-  if (!selRoom() && state.rooms.length) state.selected = state.rooms[0].id;
-  showScreen('plan'); setView(state.view); renderSide();
-}
+function openPlan(){ if (!selRoom() && state.rooms.length) state.selected = state.rooms[0].id; showScreen('plan'); setView(state.view); renderSide(); }
 function setView(v){
   state.view = v;
   $('#tab2d').classList.toggle('on', v==='2d'); $('#tab3d').classList.toggle('on', v==='3d');
   $('#svg2d').classList.toggle('hidden', v!=='2d'); $('#c3d').classList.toggle('hidden', v!=='3d');
   $('#btnReset3d').classList.toggle('hidden', v!=='3d');
-  $('#viewHint').textContent = v==='2d' ? 'Toque para selecionar · arraste para mover' : 'Arraste para girar · pinça para zoom';
-  const vh=$('#viewHint'); vh.style.opacity=1; clearTimeout(setView.t); setView.t=setTimeout(()=>{vh.style.opacity=0;},4500);
+  $('#btnFurn').textContent = state.settings.showFurn ? 'Móveis ✓' : 'Móveis ✕';
+  const vh=$('#viewHint'); vh.textContent = v==='2d' ? 'Toque para selecionar · arraste para mover' : 'Arraste para girar · pinça para zoom';
+  vh.style.opacity=1; clearTimeout(setView.t); setView.t=setTimeout(()=>{ vh.style.opacity=0; }, 4500);
   renderView();
 }
 function renderView(){
   const empty = !state.rooms.length;
-  $('#emptyPlan').classList.toggle('hidden', !empty);
-  $('#viewHint').classList.toggle('hidden', empty);
+  $('#emptyPlan').classList.toggle('hidden', !empty); $('#viewHint').classList.toggle('hidden', empty);
   if (state.view==='2d') render2D(); else render3D();
 }
 function svgPlan(forExport){
@@ -916,200 +1635,190 @@ function svgPlan(forExport){
   if (!rooms.length) return {svg:'', vb:null};
   const b = bbox(rooms), pad = Math.max(1.1, Math.max(b.w,b.h)*0.08);
   const vb = [b.x0-pad, b.z0-pad, b.w+pad*2, b.h+pad*2];
-  const fs = clamp(Math.max(b.w,b.h)/30, 0.17, 0.45);
-  const wallW = 0.12;
-  let s = '';
-  s += `<defs><pattern id="g1" width="1" height="1" patternUnits="userSpaceOnUse"><path d="M1 0H0V1" fill="none" stroke="#1b2a47" stroke-width="0.015"/></pattern></defs>`;
-  s += `<rect x="${vb[0]}" y="${vb[1]}" width="${vb[2]}" height="${vb[3]}" fill="#0c1426"/>`;
-  s += `<rect x="${vb[0]}" y="${vb[1]}" width="${vb[2]}" height="${vb[3]}" fill="url(#g1)"/>`;
+  const fs = clamp(Math.max(b.w,b.h)/30, 0.17, 0.45), wallW = 0.12;
   const font = `font-family="system-ui,-apple-system,Segoe UI,Roboto,sans-serif"`;
+  let s = `<defs><pattern id="g1" width="1" height="1" patternUnits="userSpaceOnUse"><path d="M1 0H0V1" fill="none" stroke="#1b2a47" stroke-width="0.015"/></pattern></defs>`;
+  s += `<rect x="${vb[0]}" y="${vb[1]}" width="${vb[2]}" height="${vb[3]}" fill="#0c1426"/><rect x="${vb[0]}" y="${vb[1]}" width="${vb[2]}" height="${vb[3]}" fill="url(#g1)"/>`;
   rooms.forEach(r=>{
-    const pts = r.pts, P = pts.map(p=>p.map(v=>v.toFixed(3)).join(',')).join(' ');
-    const sel = r.id===state.selected && !forExport;
+    const pts=r.pts, P=pts.map(p=>p.map(v=>v.toFixed(3)).join(',')).join(' '), sel=r.id===state.selected && !forExport;
     s += `<g data-id="${r.id}" style="cursor:grab">`;
     s += `<polygon points="${P}" fill="${r.color}" fill-opacity="${sel?0.42:0.26}"/>`;
+    if (state.settings.showFurn) (r.items||[]).forEach(it=>{
+      const ip=it.pts.map(p=>p.map(v=>v.toFixed(3)).join(',')).join(' '), col=furnColor(it.key);
+      s += `<polygon points="${ip}" fill="${col}" fill-opacity="0.22" stroke="${col}" stroke-width="${fs*0.07}" stroke-linejoin="round"/>`;
+      const c=it.pts.reduce((a,q)=>[a[0]+q[0]/4,a[1]+q[1]/4],[0,0]), w=Math.min(d2(it.pts[0],it.pts[1]), d2(it.pts[1],it.pts[2])), lng=Math.max(d2(it.pts[0],it.pts[1]), d2(it.pts[1],it.pts[2]));
+      const tfs=Math.min(fs*0.55, lng/(Math.max(4,it.name.length)*0.62));
+      if (tfs > fs*0.28 && w > tfs*1.4) s += `<text x="${c[0]}" y="${c[1]}" font-size="${tfs}" fill="#efeaff" text-anchor="middle" dominant-baseline="middle" ${font}>${esc(it.name)}</text>`;
+    });
     s += `<polygon points="${P}" fill="none" stroke="#e8eefc" stroke-width="${wallW}" stroke-linejoin="miter"/>`;
     if (sel) s += `<polygon points="${P}" fill="none" stroke="#3be8b0" stroke-width="${wallW*0.45}" stroke-dasharray="${fs*0.6} ${fs*0.4}"/>`;
-    // cotas
+    (r.doors||[]).forEach(d=>{
+      const w=doorWorld(r,d); if (!w) return; const [A,B]=w, Lw=d2(A,B), nO=outwardNormal(pts,d.i), nI=[-nO[0],-nO[1]];
+      s += `<line x1="${A[0]}" y1="${A[1]}" x2="${B[0]}" y2="${B[1]}" stroke="#0c1426" stroke-width="${wallW*1.25}"/>`;
+      if (d.kind==='porta'){
+        const S=[A[0]+nI[0]*Lw, A[1]+nI[1]*Lw], cr=(S[0]-A[0])*(B[1]-A[1])-(S[1]-A[1])*(B[0]-A[0]);
+        s += `<line x1="${A[0]}" y1="${A[1]}" x2="${S[0]}" y2="${S[1]}" stroke="#ffb547" stroke-width="${fs*0.09}"/>`;
+        s += `<path d="M${S[0]} ${S[1]}A${Lw} ${Lw} 0 0 ${cr>0?1:0} ${B[0]} ${B[1]}" fill="none" stroke="#ffb547" stroke-width="${fs*0.05}" stroke-dasharray="${fs*0.2} ${fs*0.15}"/>`;
+      } else {
+        const t=wallW*0.9; s += `<path d="M${A[0]-nO[0]*t} ${A[1]-nO[1]*t}L${A[0]+nO[0]*t} ${A[1]+nO[1]*t}M${B[0]-nO[0]*t} ${B[1]-nO[1]*t}L${B[0]+nO[0]*t} ${B[1]+nO[1]*t}" stroke="#ffb547" stroke-width="${fs*0.09}"/>`;
+      }
+    });
     for (let i=0;i<pts.length;i++){
       const a=pts[i], bb=pts[(i+1)%pts.length], L=d2(a,bb); if (L<0.4) continue;
-      const nrm = outwardNormal(pts,i), off = -(wallW/2 + fs*0.62);
-      const hl = state.hlWall && state.hlWall.id===r.id && state.hlWall.i===i && !forExport;
+      const nrm=outwardNormal(pts,i), off=-(wallW/2 + fs*0.62), hl=state.hlWall && state.hlWall.id===r.id && state.hlWall.i===i && !forExport;
       if (hl) s += `<line x1="${a[0]}" y1="${a[1]}" x2="${bb[0]}" y2="${bb[1]}" stroke="#3be8b0" stroke-width="${wallW*1.3}"/>`;
-      let ang = Math.atan2(bb[1]-a[1], bb[0]-a[0]) / DEG; if (ang>90) ang-=180; if (ang<-90) ang+=180;
+      let ang=Math.atan2(bb[1]-a[1], bb[0]-a[0])/DEG; if (ang>90) ang-=180; if (ang<-90) ang+=180;
       const mx=(a[0]+bb[0])/2+nrm[0]*off, my=(a[1]+bb[1])/2+nrm[1]*off;
       s += `<text x="${mx}" y="${my}" transform="rotate(${ang.toFixed(2)} ${mx} ${my})" font-size="${fs*0.72}" fill="${hl?'#3be8b0':'#aebbd8'}" text-anchor="middle" dominant-baseline="middle" ${font} font-weight="600">${fmt(L)}</text>`;
     }
-    const c = centroid(pts), area = Math.abs(polyArea(pts)), rb = bbox([r]);
-    const nfs = Math.min(fs*1.05, (rb.w*0.78)/(Math.max(4, r.name.length)*0.58));
-    s += `<text x="${c[0]}" y="${c[1]-fs*0.15}" font-size="${nfs}" fill="#ffffff" text-anchor="middle" ${font} font-weight="800">${esc(r.name)}</text>`;
-    s += `<text x="${c[0]}" y="${c[1]+fs*1.05}" font-size="${fs*0.78}" fill="#c9d4ee" text-anchor="middle" ${font}>${fmt(area)} m²</text>`;
+    const c=centroid(pts), area=Math.abs(polyArea(pts)), rb=bboxPts(pts), nfs=Math.min(fs*1.05, (rb.w*0.78)/(Math.max(4, r.name.length)*0.58));
+    s += `<text x="${c[0]}" y="${c[1]-fs*0.15}" font-size="${nfs}" fill="#ffffff" text-anchor="middle" ${font} font-weight="800" style="paint-order:stroke" stroke="#0c1426" stroke-width="${nfs*0.12}">${esc(r.name)}</text>`;
+    s += `<text x="${c[0]}" y="${c[1]+fs*1.05}" font-size="${fs*0.78}" fill="#c9d4ee" text-anchor="middle" ${font} style="paint-order:stroke" stroke="#0c1426" stroke-width="${fs*0.1}">${fmt(area)} m²</text>`;
     s += `</g>`;
   });
-  // barra de escala 1 m
-  const sx = vb[0] + pad*0.45, sy = vb[1] + vb[3] - pad*0.45;
+  const sx=vb[0]+pad*0.45, sy=vb[1]+vb[3]-pad*0.45;
   s += `<g ${font}><path d="M${sx} ${sy}H${sx+1}M${sx} ${sy-fs*0.25}V${sy+fs*0.25}M${sx+1} ${sy-fs*0.25}V${sy+fs*0.25}" stroke="#c9d4ee" stroke-width="${fs*0.08}"/>`;
   s += `<text x="${sx+0.5}" y="${sy-fs*0.5}" font-size="${fs*0.7}" fill="#c9d4ee" text-anchor="middle">1 m</text></g>`;
   return {svg:s, vb};
 }
-let planVB = null;
+let planVB = null, drag = null;
 function render2D(){
-  const svg = $('#svg2d');
-  const {svg:s, vb} = svgPlan(false);
+  const svg=$('#svg2d'), {svg:s, vb}=svgPlan(false);
   if (!vb) { svg.innerHTML=''; return; }
   if (!drag) planVB = vb;
-  svg.setAttribute('viewBox', planVB.join(' '));
-  svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
-  svg.innerHTML = s;
+  svg.setAttribute('viewBox', planVB.join(' ')); svg.setAttribute('preserveAspectRatio', 'xMidYMid meet'); svg.innerHTML = s;
 }
-/* arrastar cômodos */
-let drag = null;
-function svgPoint(evt){
-  const svg=$('#svg2d'), pt=svg.createSVGPoint(); pt.x=evt.clientX; pt.y=evt.clientY;
-  return pt.matrixTransform(svg.getScreenCTM().inverse());
-}
+function svgPoint(evt){ const svg=$('#svg2d'), pt=svg.createSVGPoint(); pt.x=evt.clientX; pt.y=evt.clientY; return pt.matrixTransform(svg.getScreenCTM().inverse()); }
 function snapDelta(room, dx, dz){
-  const others = state.rooms.filter(r=>r!==room), T = 0.2;
-  let bx = null, bz = null;
+  const others=state.rooms.filter(r=>r!==room), T=0.2; let bx=null, bz=null;
   for (const p of room.pts) for (const o of others) for (const q of o.pts){
-    const ex = q[0]-(p[0]+dx), ez = q[1]-(p[1]+dz);
-    if (Math.abs(ex) < T && (bx===null || Math.abs(ex) < Math.abs(bx))) bx = ex;
-    if (Math.abs(ez) < T && (bz===null || Math.abs(ez) < Math.abs(bz))) bz = ez;
+    const ex=q[0]-(p[0]+dx), ez=q[1]-(p[1]+dz);
+    if (Math.abs(ex)<T && (bx===null || Math.abs(ex)<Math.abs(bx))) bx=ex;
+    if (Math.abs(ez)<T && (bz===null || Math.abs(ez)<Math.abs(bz))) bz=ez;
   }
-  return [dx + (bx||0), dz + (bz||0)];
+  return [dx+(bx||0), dz+(bz||0)];
 }
 function initDrag(){
   const svg=$('#svg2d');
   svg.addEventListener('pointerdown', e=>{
-    const g = e.target.closest('g[data-id]');
-    if (!g) { if (state.selected) { state.hlWall=null; } return; }
-    const room = state.rooms.find(r=>r.id===g.dataset.id); if (!room) return;
-    const p = svgPoint(e);
-    drag = { room, g, start:p, dx:0, dz:0, moved:false, id:e.pointerId };
+    const g=e.target.closest('g[data-id]'); if (!g) return;
+    const room=state.rooms.find(r=>r.id===g.dataset.id); if (!room) return;
+    drag={ room, g, start:svgPoint(e), dx:0, dz:0, moved:false, id:e.pointerId };
     svg.setPointerCapture(e.pointerId);
-    if (state.selected !== room.id) { state.selected = room.id; state.hlWall=null; render2D(); renderSide(); drag.g = svg.querySelector(`g[data-id="${room.id}"]`); }
+    if (state.selected!==room.id) { state.selected=room.id; state.hlWall=null; render2D(); renderSide(); drag.g=svg.querySelector(`g[data-id="${room.id}"]`); }
   });
   svg.addEventListener('pointermove', e=>{
     if (!drag || e.pointerId!==drag.id) return;
-    const p = svgPoint(e);
-    let dx = p.x - drag.start.x, dz = p.y - drag.start.y;
-    if (!drag.moved && Math.hypot(dx,dz) < 0.08) return;
-    drag.moved = true;
-    [dx, dz] = snapDelta(drag.room, dx, dz);
-    drag.dx = dx; drag.dz = dz;
+    const p=svgPoint(e); let dx=p.x-drag.start.x, dz=p.y-drag.start.y;
+    if (!drag.moved && Math.hypot(dx,dz)<0.08) return;
+    drag.moved=true; [dx,dz]=snapDelta(drag.room,dx,dz); drag.dx=dx; drag.dz=dz;
     drag.g.setAttribute('transform', `translate(${dx} ${dz})`);
   });
-  const end = e=>{
-    if (!drag || e.pointerId!==drag.id) return;
-    const d = drag; drag = null;
-    if (d.moved) { translateRoom(d.room, d.dx, d.dz); save(); }
-    render2D();
-  };
+  const end=e=>{ if (!drag || e.pointerId!==drag.id) return; const d=drag; drag=null; if (d.moved){ translateRoom(d.room, d.dx, d.dz); save(); } render2D(); };
   svg.addEventListener('pointerup', end); svg.addEventListener('pointercancel', end);
 }
 
 /* =========================================================
    PLANTA 3D (renderizador próprio em canvas)
    ========================================================= */
-const v3 = { yaw: -0.65, pitch: 0.78, dist: null, pan:[0,0] };
+const v3 = { yaw:-0.65, pitch:0.78, dist:null };
 let c3ctx;
 function cam3D(W,H){
-  const b = bbox(state.rooms);
-  if (v3.dist===null) v3.dist = Math.max(b.w, b.h) * 1.55 + 4;
-  const target = [b.cx + v3.pan[0], 1.0, b.cz + v3.pan[1]];
-  const cp = Math.cos(v3.pitch), eye = [target[0] + v3.dist*cp*Math.sin(v3.yaw), target[1] + v3.dist*Math.sin(v3.pitch), target[2] + v3.dist*cp*Math.cos(v3.yaw)];
-  const f = norm(sub(target, eye)), r = norm(cross(f, [0,1,0])), u = cross(r, f);
-  const focal = Math.min(W, H) * 1.15;
+  const b=bbox(state.rooms);
+  if (v3.dist===null) v3.dist = Math.max(b.w,b.h)*1.55 + 4;
+  const target=[b.cx, 1.0, b.cz], cp=Math.cos(v3.pitch);
+  const eye=[target[0]+v3.dist*cp*Math.sin(v3.yaw), target[1]+v3.dist*Math.sin(v3.pitch), target[2]+v3.dist*cp*Math.cos(v3.yaw)];
+  const f=norm(sub(target,eye)), r=norm(cross(f,[0,1,0])), u=cross(r,f), focal=Math.min(W,H)*1.15;
   return { pos:eye, f, r, u, fx:focal, fy:focal, cx:W/2, cy:H/2 };
 }
+function hexRGB(hex){ const n=parseInt(hex.slice(1),16); return [n>>16&255, n>>8&255, n&255]; }
+function hexA(hex,a){ const [r,g,b]=hexRGB(hex); return `rgba(${r},${g},${b},${a})`; }
 function render3D(){
   const cv=$('#c3d'), box=$('#view').getBoundingClientRect(), dpr=Math.min(devicePixelRatio||1,2);
   const W=Math.max(1,box.width), H=Math.max(1,box.height);
   if (cv.width!==Math.round(W*dpr) || cv.height!==Math.round(H*dpr)) { cv.width=Math.round(W*dpr); cv.height=Math.round(H*dpr); }
   const ctx = c3ctx || (c3ctx = cv.getContext('2d'));
   ctx.setTransform(dpr,0,0,dpr,0,0);
-  const g = ctx.createLinearGradient(0,0,0,H); g.addColorStop(0,'#13213d'); g.addColorStop(1,'#0a0f1c');
-  ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+  const g=ctx.createLinearGradient(0,0,0,H); g.addColorStop(0,'#13213d'); g.addColorStop(1,'#0a0f1c'); ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
   if (!state.rooms.length) return;
-  const cam = cam3D(W,H);
-  const P = p => { const v=sub(p,cam.pos), z=dot(v,cam.f); if (z<0.05) return null; return [cam.cx + dot(v,cam.r)/z*cam.fx, cam.cy - dot(v,cam.u)/z*cam.fy]; };
-  const depth = p => dot(sub(p,cam.pos), cam.f);
-  const poly = (pts3, fill, stroke, lw) => {
-    const s = pts3.map(P); if (s.some(q=>!q)) return;
+  const cam=cam3D(W,H);
+  const P=p=>{ const v=sub(p,cam.pos), z=dot(v,cam.f); if (z<0.05) return null; return [cam.cx+dot(v,cam.r)/z*cam.fx, cam.cy-dot(v,cam.u)/z*cam.fy]; };
+  const depth=p=>dot(sub(p,cam.pos), cam.f);
+  const poly=(pts3, fill, stroke, lw)=>{ const s=pts3.map(P); if (s.some(q=>!q)) return;
     ctx.beginPath(); s.forEach((q,i)=> i ? ctx.lineTo(q[0],q[1]) : ctx.moveTo(q[0],q[1])); ctx.closePath();
-    if (fill) { ctx.fillStyle=fill; ctx.fill(); }
-    if (stroke) { ctx.strokeStyle=stroke; ctx.lineWidth=lw||1; ctx.stroke(); }
-  };
-  // grade do chão
-  const b = bbox(state.rooms), ext = 2;
-  ctx.lineWidth = 1; ctx.strokeStyle='rgba(120,150,210,.12)';
+    if (fill){ ctx.fillStyle=fill; ctx.fill(); } if (stroke){ ctx.strokeStyle=stroke; ctx.lineWidth=lw||1; ctx.stroke(); } };
+  const b=bbox(state.rooms), ext=2;
+  ctx.lineWidth=1; ctx.strokeStyle='rgba(120,150,210,.12)';
   for (let x=Math.floor(b.x0-ext); x<=Math.ceil(b.x1+ext); x++){ const a=P([x,0,b.z0-ext]), c=P([x,0,b.z1+ext]); if(a&&c){ctx.beginPath();ctx.moveTo(a[0],a[1]);ctx.lineTo(c[0],c[1]);ctx.stroke();} }
   for (let z=Math.floor(b.z0-ext); z<=Math.ceil(b.z1+ext); z++){ const a=P([b.x0-ext,0,z]), c=P([b.x1+ext,0,z]); if(a&&c){ctx.beginPath();ctx.moveTo(a[0],a[1]);ctx.lineTo(c[0],c[1]);ctx.stroke();} }
-  // pisos
-  const floors = state.rooms.map(r=>({ r, pts3:r.pts.map(([x,z])=>[x,0,z]), d: depth([centroid(r.pts)[0],0,centroid(r.pts)[1]]) })).sort((a,b)=>b.d-a.d);
+  const floors=state.rooms.map(r=>{ const c=centroid(r.pts); return { r, pts3:r.pts.map(([x,z])=>[x,0,z]), d:depth([c[0],0,c[1]]) }; }).sort((p,q)=>q.d-p.d);
   floors.forEach(F=>{ const sel=F.r.id===state.selected; poly(F.pts3, hexA(F.r.color, sel?0.75:0.55), sel?'#3be8b0':'rgba(255,255,255,.25)', sel?2:1); });
-  // paredes
-  const L = norm([0.45, 0.8, 0.35]);
-  const walls = [];
+  const L=norm([0.45,0.8,0.35]), faces=[];
   state.rooms.forEach(r=>{
-    const n = r.pts.length;
+    const n=r.pts.length, h=r.height||DEFAULT_H;
     for (let i=0;i<n;i++){
-      const a=r.pts[i], c=r.pts[(i+1)%n], h=r.height||DEFAULT_H, no=outwardNormal(r.pts,i);
-      const quad=[[a[0],0,a[1]],[c[0],0,c[1]],[c[0],h,c[1]],[a[0],h,a[1]]];
-      const mid=[(a[0]+c[0])/2, h/2, (a[1]+c[1])/2];
-      const toCam = sub(cam.pos, mid);
-      const facing = no[0]*toCam[0] + no[1]*toCam[2] > 0;    // parede entre a câmera e o interior
-      walls.push({ quad, d:depth(mid), facing, no, r });
+      const a=r.pts[i], c=r.pts[(i+1)%n], no=outwardNormal(r.pts,i);
+      const mid=[(a[0]+c[0])/2, h/2, (a[1]+c[1])/2], toCam=sub(cam.pos, mid), facing = no[0]*toCam[0] + no[1]*toCam[2] > 0;
+      const ops=(r.doors||[]).filter(d=>d.i===i).sort((p,q)=>p.t0-q.t0), segs=[]; let t=0;
+      for (const d of ops){ if (d.t0>t) segs.push([t,d.t0,0,h]); segs.push([d.t0,d.t1,Math.min(DOOR_H,h-0.05),h,true]); t=Math.max(t,d.t1); }
+      if (t<1) segs.push([t,1,0,h]);
+      for (const [t0,t1,y0,y1,lintel] of segs){
+        const A=[a[0]+(c[0]-a[0])*t0, a[1]+(c[1]-a[1])*t0], B=[a[0]+(c[0]-a[0])*t1, a[1]+(c[1]-a[1])*t1];
+        const quad=[[A[0],y0,A[1]],[B[0],y0,B[1]],[B[0],y1,B[1]],[A[0],y1,A[1]]], m3=[(A[0]+B[0])/2,(y0+y1)/2,(A[1]+B[1])/2];
+        const nIn=[-no[0],0,-no[1]], lum=0.55+0.45*Math.max(0, dot(facing?[no[0],0,no[1]]:nIn, L)), base=facing?[210,222,245]:[232,238,252];
+        faces.push({ kind:'wall', quad, d:depth(m3), fill:`rgba(${Math.round(base[0]*lum)},${Math.round(base[1]*lum)},${Math.round(base[2]*lum)},${facing?0.16:0.93})`,
+          stroke: facing ? 'rgba(232,238,252,.35)' : 'rgba(10,15,28,.35)', top:[quad[3],quad[2]], facing, lintel });
+      }
     }
+    if (state.settings.showFurn) (r.items||[]).forEach(it=>{
+      const bp=it.pts, hh=it.h, col=hexRGB(furnColor(it.key)), cxz=bp.reduce((s,q)=>[s[0]+q[0]/4,s[1]+q[1]/4],[0,0]);
+      for (let e=0;e<4;e++){ const p0=bp[e], p1=bp[(e+1)%4], m=[(p0[0]+p1[0])/2,(p0[1]+p1[1])/2];
+        let nn=[m[0]-cxz[0],0,m[1]-cxz[1]]; nn=norm(nn); const mid3=[m[0],hh/2,m[1]];
+        if (dot(nn, sub(cam.pos, mid3)) <= 0) continue;
+        const lum=0.5+0.5*Math.max(0,dot(nn,L));
+        faces.push({ kind:'item', quad:[[p0[0],0,p0[1]],[p1[0],0,p1[1]],[p1[0],hh,p1[1]],[p0[0],hh,p0[1]]], d:depth(mid3), fill:`rgba(${Math.round(col[0]*lum)},${Math.round(col[1]*lum)},${Math.round(col[2]*lum)},.95)`, stroke:'rgba(20,10,40,.4)' }); }
+      faces.push({ kind:'item', quad:bp.map(([x,z])=>[x,hh,z]), d:depth([cxz[0],hh,cxz[1]]) - 0.01, fill:`rgba(${Math.min(255,col[0]+20)},${Math.min(255,col[1]+20)},${Math.min(255,col[2]+20)},.97)`, stroke:'rgba(20,10,40,.4)' });
+    });
   });
-  walls.sort((a,b)=>b.d-a.d);
-  walls.forEach(w=>{
-    const inner = [-w.no[0], 0, -w.no[1]];
-    const lum = 0.55 + 0.45*Math.max(0, dot(w.facing ? [w.no[0],0,w.no[1]] : inner, L));
-    const base = w.facing ? [210,222,245] : [232,238,252];
-    const col = `rgba(${Math.round(base[0]*lum)},${Math.round(base[1]*lum)},${Math.round(base[2]*lum)},${w.facing?0.16:0.93})`;
-    poly(w.quad, col, w.facing ? 'rgba(232,238,252,.35)' : 'rgba(10,15,28,.35)', 1);
-    // topo da parede
-    const t1=P(w.quad[3]), t2=P(w.quad[2]);
-    if (t1&&t2){ ctx.strokeStyle= w.facing ? 'rgba(232,238,252,.5)' : '#ffffff'; ctx.lineWidth= w.facing?1.5:3; ctx.beginPath(); ctx.moveTo(t1[0],t1[1]); ctx.lineTo(t2[0],t2[1]); ctx.stroke(); }
+  faces.sort((p,q)=>q.d-p.d);
+  faces.forEach(fc=>{
+    poly(fc.quad, fc.fill, fc.stroke, 1);
+    if (fc.kind==='wall'){ const t1=P(fc.top[0]), t2=P(fc.top[1]); if (t1&&t2){ ctx.strokeStyle=fc.facing?'rgba(232,238,252,.5)':'#ffffff'; ctx.lineWidth=fc.facing?1.5:3; ctx.beginPath(); ctx.moveTo(t1[0],t1[1]); ctx.lineTo(t2[0],t2[1]); ctx.stroke(); }
+      if (fc.lintel){ const b1=P(fc.quad[0]), b2=P(fc.quad[1]); if (b1&&b2){ ctx.strokeStyle='#ffb547'; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(b1[0],b1[1]); ctx.lineTo(b2[0],b2[1]); ctx.stroke(); } } }
   });
-  // nomes
   state.rooms.forEach(r=>{
-    const c=centroid(r.pts), p=P([c[0],0.05,c[1]]); if(!p) return;
+    const c=centroid(r.pts), p=P([c[0],0.05,c[1]]); if (!p) return;
     ctx.font='700 13px system-ui,sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
-    const t1=r.name, t2=fmt(Math.abs(polyArea(r.pts)))+' m²';
-    const w=Math.max(ctx.measureText(t1).width, 50)+16;
-    ctx.fillStyle='rgba(10,15,28,.78)'; ctx.beginPath(); if(ctx.roundRect) ctx.roundRect(p[0]-w/2,p[1]-18,w,36,8); else ctx.rect(p[0]-w/2,p[1]-18,w,36); ctx.fill();
-    ctx.fillStyle='#fff'; ctx.fillText(t1,p[0],p[1]-6);
-    ctx.font='12px ui-monospace,Menlo,monospace'; ctx.fillStyle='#9fb0d4'; ctx.fillText(t2,p[0],p[1]+9);
+    const t1=r.name, t2=fmt(Math.abs(polyArea(r.pts)))+' m²', w=Math.max(ctx.measureText(t1).width, 50)+16;
+    ctx.fillStyle='rgba(10,15,28,.78)'; ctx.beginPath(); if (ctx.roundRect) ctx.roundRect(p[0]-w/2,p[1]-18,w,36,8); else ctx.rect(p[0]-w/2,p[1]-18,w,36); ctx.fill();
+    ctx.fillStyle='#fff'; ctx.fillText(t1,p[0],p[1]-6); ctx.font='12px ui-monospace,Menlo,monospace'; ctx.fillStyle='#9fb0d4'; ctx.fillText(t2,p[0],p[1]+9);
   });
 }
-function hexA(hex, a){ const n=parseInt(hex.slice(1),16); return `rgba(${n>>16&255},${n>>8&255},${n&255},${a})`; }
 function init3D(){
   const cv=$('#c3d'), pts=new Map(); let lastPinch=null;
   cv.addEventListener('pointerdown', e=>{ cv.setPointerCapture(e.pointerId); pts.set(e.pointerId,[e.clientX,e.clientY]); lastPinch=null; });
   cv.addEventListener('pointermove', e=>{
     if (!pts.has(e.pointerId)) return;
-    const prev = pts.get(e.pointerId); pts.set(e.pointerId,[e.clientX,e.clientY]);
+    const prev=pts.get(e.pointerId); pts.set(e.pointerId,[e.clientX,e.clientY]);
     if (pts.size===1){ v3.yaw -= (e.clientX-prev[0])*0.008; v3.pitch = clamp(v3.pitch + (e.clientY-prev[1])*0.006, 0.1, 1.52); }
-    else if (pts.size===2){ const [a,b]=[...pts.values()], dd=Math.hypot(a[0]-b[0],a[1]-b[1]); if(lastPinch) v3.dist=clamp(v3.dist*lastPinch/dd, 2, 80); lastPinch=dd; }
+    else if (pts.size===2){ const [a,b]=[...pts.values()], dd=Math.hypot(a[0]-b[0],a[1]-b[1]); if (lastPinch) v3.dist=clamp(v3.dist*lastPinch/dd, 2, 80); lastPinch=dd; }
     render3D();
   });
-  const up = e=>{ pts.delete(e.pointerId); lastPinch=null; };
+  const up=e=>{ pts.delete(e.pointerId); lastPinch=null; };
   cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up);
-  cv.addEventListener('wheel', e=>{ e.preventDefault(); v3.dist = clamp(v3.dist*Math.exp(e.deltaY*0.0012), 2, 80); render3D(); }, {passive:false});
+  cv.addEventListener('wheel', e=>{ e.preventDefault(); v3.dist=clamp(v3.dist*Math.exp(e.deltaY*0.0012), 2, 80); render3D(); }, {passive:false});
 }
 
 /* =========================================================
-   Painel lateral: lista, nome, medidas
+   Painel lateral: lista, nome, medidas, portas e móveis
    ========================================================= */
 function renderSide(){
   const chips=$('#chips');
-  chips.innerHTML = state.rooms.map(r=>`<button class="chip ${r.id===state.selected?'on':''}" data-id="${r.id}"><i style="background:${r.color}"></i>${esc(r.name)}</button>`).join('')
+  chips.innerHTML = state.rooms.map(r=>`<button class="chip ${r.id===state.selected?'on':''}" data-id="${r.id}"><i style="background:${r.color}"></i><span>${esc(r.name)}</span></button>`).join('')
     + `<button class="chip add" data-act="scan">+ Escanear</button>`;
-  const totalA = state.rooms.reduce((s,r)=>s+Math.abs(polyArea(r.pts)),0);
-  $('#totals').innerHTML = state.rooms.length ? `<span>Cômodos <b>${state.rooms.length}</b></span><span>Área total <b>${fmt(totalA)} m²</b></span>` : '';
-  const r = selRoom(), det=$('#det');
+  const totalA=state.rooms.reduce((s,r)=>s+Math.abs(polyArea(r.pts)),0), nd=state.rooms.reduce((s,r)=>s+(r.doors||[]).length,0), nf=state.rooms.reduce((s,r)=>s+(r.items||[]).length,0);
+  $('#totals').innerHTML = state.rooms.length ? `<span>Cômodos <b>${state.rooms.length}</b></span><span>Área total <b>${fmt(totalA)} m²</b></span><span>Portas <b>${nd}</b></span><span>Móveis <b>${nf}</b></span>` : '';
+  const r=selRoom(), det=$('#det');
   if (!r) { det.innerHTML = state.rooms.length ? '<p class="note">Selecione um cômodo.</p>' : ''; return; }
   const area=Math.abs(polyArea(r.pts)), per=polyPerim(r.pts);
   det.innerHTML = `
@@ -1119,47 +1828,59 @@ function renderSide(){
       <div><small>Área</small><b>${fmt(area)} m²</b></div>
       <div><small>Perímetro</small><b>${fmt(per)} m</b></div>
       <div><small>Pé-direito</small><input id="dH" inputmode="decimal" value="${fmt(r.height)}"></div>
-      <div><small>Volume</small><b id="dVol">${fmt(area*r.height,1)} m³</b></div>
+      <div><small>Volume</small><b>${fmt(area*r.height,1)} m³</b></div>
     </div>
     <label class="lbl">Paredes (m) — corrija com uma medida real para ajustar a escala</label>
     <div class="walls">${r.pts.map((p,i)=>`<div class="wall"><span>P${i+1}</span><input class="wall-in" data-i="${i}" inputmode="decimal" value="${fmt(d2(p, r.pts[(i+1)%r.pts.length]))}"></div>`).join('')}</div>
     <label class="chk"><input type="checkbox" class="switch" id="dAll"> Aplicar a correção de escala a todos os cômodos</label>
-    <div class="actions">
+    <label class="lbl">Portas e passagens (${(r.doors||[]).length})</label>
+    <div class="list">${(r.doors||[]).map((d,k)=>{ const w=doorWorld(r,d); return `<div class="row"><i style="background:#ffb547"></i><span>${d.kind==='porta'?'Porta':'Passagem'} · parede P${d.i+1}</span><small>${w?fmt(d2(w[0],w[1])):'–'} m</small><button data-del-door="${k}" aria-label="Remover">×</button></div>`; }).join('') || '<p class="note" style="margin:0">Nenhuma detectada.</p>'}</div>
+    <label class="lbl">Móveis e objetos (${(r.items||[]).length})</label>
+    <div class="list">${(r.items||[]).map((it,k)=>`<div class="row"><i style="background:${furnColor(it.key)}"></i><span>${esc(it.name)}</span><small>${fmt(d2(it.pts[0],it.pts[1]),1)} × ${fmt(d2(it.pts[1],it.pts[2]),1)} m</small><button data-del-item="${k}" aria-label="Remover">×</button></div>`).join('') || '<p class="note" style="margin:0">Nenhum detectado.</p>'}</div>
+    <div class="actions" style="margin-top:14px">
       <button class="btn sm" data-act="rot90">⟳ Girar 90°</button>
       <button class="btn sm" data-act="rot5">↻ 5°</button>
       <button class="btn sm" data-act="square">⊾ Esquadrejar</button>
-      <button class="btn sm danger" data-act="del">Excluir</button>
+      <button class="btn sm danger" data-act="del">Excluir cômodo</button>
     </div>
-    <p class="note">${r.mode==='sensor' ? 'Escaneado no modo sensores: medidas estimadas pela inclinação do celular. Corrija uma parede com uma trena para calibrar.' : r.mode==='xr' ? 'Escaneado com AR completo (WebXR).' : 'Cômodo de exemplo.'}</p>`;
-  const nameIn = $('#dName');
-  nameIn.addEventListener('input', ()=>{ r.name = nameIn.value.trim() || 'Sem nome'; save(); renderView(); const chip=chips.querySelector(`[data-id="${r.id}"]`); if(chip) chip.lastChild.textContent=r.name; });
-  nameIn.addEventListener('keydown', e=>{ if(e.key==='Enter') nameIn.blur(); });
-  $('#dH').addEventListener('change', e=>{ const v=parseNum(e.target.value); if(!(v>=1.5&&v<=10)){ toast('Pé-direito entre 1,5 e 10 m'); e.target.value=fmt(r.height); return; } r.height=Math.round(v*100)/100; save(); renderSide(); renderView(); });
+    <p class="note">${r.mode==='sensor' ? 'Escaneado no modo sensores: medidas estimadas pela inclinação do celular. Corrija uma parede com uma trena para calibrar.' : r.mode==='xr' ? 'Escaneado com AR completo (WebXR).' : r.mode==='sim' ? 'Cômodo gerado pela simulação.' : 'Cômodo de exemplo.'}</p>`;
+  const nameIn=$('#dName');
+  nameIn.addEventListener('input', ()=>{ r.name = nameIn.value.trim() || 'Sem nome'; save(); renderView(); const chip=chips.querySelector(`[data-id="${r.id}"] span`); if (chip) chip.textContent=r.name; });
+  nameIn.addEventListener('keydown', e=>{ if (e.key==='Enter') nameIn.blur(); });
+  $('#dH').addEventListener('change', e=>{ const v=parseNum(e.target.value); if (!(v>=1.5&&v<=10)){ toast('Pé-direito entre 1,5 e 10 m'); e.target.value=fmt(r.height); return; } r.height=Math.round(v*100)/100; save(); renderSide(); renderView(); });
   det.querySelectorAll('.wall-in').forEach(inp=>{
     const i=+inp.dataset.i;
     inp.addEventListener('focus', ()=>{ state.hlWall={id:r.id,i}; renderView(); inp.select(); });
-    inp.addEventListener('blur', ()=>{ setTimeout(()=>{ if(state.hlWall&&state.hlWall.i===i){ state.hlWall=null; renderView(); } }, 150); });
-    inp.addEventListener('keydown', e=>{ if(e.key==='Enter') inp.blur(); });
+    inp.addEventListener('blur', ()=>{ setTimeout(()=>{ if (state.hlWall && state.hlWall.i===i){ state.hlWall=null; renderView(); } }, 150); });
+    inp.addEventListener('keydown', e=>{ if (e.key==='Enter') inp.blur(); });
     inp.addEventListener('change', ()=>{
       const v=parseNum(inp.value), old=d2(r.pts[i], r.pts[(i+1)%r.pts.length]);
-      if (!(v>0.1 && v<100) || old<0.01) { inp.value=fmt(old); toast('Medida inválida'); return; }
-      const f = v/old;
-      if ($('#dAll').checked) { const bb=bbox(state.rooms), c=[bb.cx,bb.cz]; state.rooms.forEach(o=>o.pts=scalePts(o.pts,f,c)); }
-      else r.pts = scalePts(r.pts, f, centroid(r.pts));
+      if (!(v>0.1 && v<100) || old<0.01){ inp.value=fmt(old); toast('Medida inválida'); return; }
+      const f=v/old;
+      if ($('#dAll').checked){ const bb=bbox(state.rooms), c=[bb.cx,bb.cz]; state.rooms.forEach(o=>scaleRoom(o,f,c)); } else scaleRoom(r, f, centroid(r.pts));
       save(); renderSide(); renderView(); toast(`Escala ajustada (${f>1?'+':''}${fmt((f-1)*100,1)}%)`);
     });
   });
 }
 function onSideClick(e){
-  const chip = e.target.closest('.chip');
-  if (chip) { if (chip.dataset.act==='scan') { startScan(); return; } state.selected = chip.dataset.id; state.hlWall=null; renderSide(); renderView(); return; }
-  const btn = e.target.closest('[data-act]'); if (!btn) return;
-  const r = selRoom(); if (!r) return;
-  const act = btn.dataset.act;
-  if (act==='rot90') rotateRoom(r, 90);
-  else if (act==='rot5') rotateRoom(r, 5);
-  else if (act==='square') { const sq=squarePoly(r.pts); if (sq.maxDev>40) { toast('Formato irregular demais para esquadrejar'); return; } const c0=centroid(r.pts); r.pts=sq.pts; const c1=centroid(r.pts); translateRoom(r, c0[0]-c1[0], c0[1]-c1[1]); toast('Ângulos ajustados para 90°'); }
-  else if (act==='del') { modal({title:`Excluir “${r.name}”?`, text:'Esta ação não pode ser desfeita.', buttons:[{label:'Cancelar'},{label:'Excluir',cls:'warn',onClick:()=>{ state.rooms=state.rooms.filter(o=>o!==r); state.selected=state.rooms[0]?.id||null; save(); renderSide(); renderView(); }}]}); return; }
+  const chip=e.target.closest('.chip');
+  if (chip){ if (chip.dataset.act==='scan'){ startScan(); return; } state.selected=chip.dataset.id; state.hlWall=null; renderSide(); renderView(); return; }
+  const r=selRoom(); if (!r) return;
+  const dd=e.target.closest('[data-del-door]'), di=e.target.closest('[data-del-item]');
+  if (dd){ r.doors.splice(+dd.dataset.delDoor,1); save(); renderSide(); renderView(); return; }
+  if (di){ r.items.splice(+di.dataset.delItem,1); save(); renderSide(); renderView(); return; }
+  const btn=e.target.closest('[data-act]'); if (!btn) return;
+  const act=btn.dataset.act;
+  if (act==='rot90') rotateRoom(r,90);
+  else if (act==='rot5') rotateRoom(r,5);
+  else if (act==='square'){
+    const sq=squarePoly(r.pts); if (sq.maxDev>40){ toast('Formato irregular demais para esquadrejar'); return; }
+    const worldDoors=(r.doors||[]).map(d=>({w:doorWorld(r,d), kind:d.kind}));
+    const c0=centroid(r.pts); r.pts=sq.pts; const c1=centroid(r.pts); r.pts=r.pts.map(([x,z])=>[x+c0[0]-c1[0], z+c0[1]-c1[1]]);
+    r.doors=worldDoors.map(o=>o.w && attachDoor(r.pts, o.w[0], o.w[1], o.kind)).filter(Boolean);
+    toast('Ângulos ajustados para 90°');
+  }
+  else if (act==='del'){ modal({title:`Excluir “${r.name}”?`, text:'Esta ação não pode ser desfeita.', buttons:[{label:'Cancelar'},{label:'Excluir',cls:'warn',onClick:()=>{ state.rooms=state.rooms.filter(o=>o!==r); state.selected=state.rooms[0]?.id||null; save(); renderSide(); renderView(); }}]}); return; }
   save(); renderSide(); renderView();
 }
 
@@ -1168,31 +1889,25 @@ function onSideClick(e){
    ========================================================= */
 function exportPNG(){
   if (!state.rooms.length) return;
-  if (state.view==='3d') { $('#c3d').toBlob(b=>b&&download(b,'planta-3d.png')); return; }
-  const {svg, vb} = svgPlan(true);
-  const scale = clamp(2400/Math.max(vb[2],vb[3]), 60, 220);
-  const w = Math.round(vb[2]*scale), h = Math.round(vb[3]*scale);
-  const src = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="${vb.join(' ')}">${svg}</svg>`;
-  const img = new Image();
-  img.onload = ()=>{ const cv=document.createElement('canvas'); cv.width=w; cv.height=h; const c=cv.getContext('2d'); c.drawImage(img,0,0); cv.toBlob(b=>b&&download(b,'planta-2d.png')); };
-  img.onerror = ()=>toast('Não foi possível gerar a imagem');
-  img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(src);
+  if (state.view==='3d'){ $('#c3d').toBlob(b=>b&&download(b,'planta-3d.png')); return; }
+  const {svg, vb}=svgPlan(true), scale=clamp(2400/Math.max(vb[2],vb[3]), 60, 220), w=Math.round(vb[2]*scale), h=Math.round(vb[3]*scale);
+  const img=new Image();
+  img.onload=()=>{ const cv=document.createElement('canvas'); cv.width=w; cv.height=h; cv.getContext('2d').drawImage(img,0,0); cv.toBlob(b=>b&&download(b,'planta-2d.png')); };
+  img.onerror=()=>toast('Não foi possível gerar a imagem');
+  img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="${vb.join(' ')}">${svg}</svg>`);
 }
-function projectJSON(){ return JSON.stringify({ app:'Planta AR', version:1, unidade:'metros', rooms: state.rooms.map(r=>({...r, area:+Math.abs(polyArea(r.pts)).toFixed(2)})) }, null, 2); }
+function projectJSON(){ return JSON.stringify({ app:'Planta AR', version:2, unidade:'metros', rooms: state.rooms.map(r=>({...r, area:+Math.abs(polyArea(r.pts)).toFixed(2)})) }, null, 2); }
 function importJSON(text){
-  try {
-    const d = JSON.parse(text); const rooms = d.rooms;
-    if (!Array.isArray(rooms) || !rooms.every(r=>Array.isArray(r.pts) && r.pts.length>=3)) throw 0;
-    state.rooms = rooms.map((r,i)=>({ id:r.id||uid(), name:String(r.name||`Cômodo ${i+1}`), pts:r.pts.map(p=>[+p[0],+p[1]]), height:+r.height||DEFAULT_H, color:r.color||COLORS[i%COLORS.length], mode:r.mode||'import' }));
-    state.selected = state.rooms[0].id; v3.dist=null; save(); openPlan(); toast('Projeto importado');
-  } catch(e){ toast('Arquivo inválido'); }
+  try { const d=JSON.parse(text), rooms=(d.rooms||[]).map(sanitizeRoom).filter(Boolean); if (!rooms.length) throw 0;
+    state.rooms=rooms; state.selected=rooms[0].id; v3.dist=null; save(); openPlan(); toast('Projeto importado'); }
+  catch(e){ toast('Arquivo inválido'); }
 }
 function onMenu(act){
   $('#menu').classList.add('hidden');
   if (act==='scan') startScan();
   else if (act==='png') exportPNG();
   else if (act==='json') download(new Blob([projectJSON()],{type:'application/json'}), 'planta-ar.json');
-  else if (act==='copy') { const j=projectJSON(); (navigator.clipboard ? navigator.clipboard.writeText(j) : Promise.reject()).then(()=>toast('Projeto copiado')).catch(()=>modal({title:'Copiar projeto', text:'Selecione e copie o texto:', extra:`<textarea class="json" readonly>${esc(j)}</textarea>`, buttons:[{label:'Fechar',cls:'primary'}]})); }
+  else if (act==='copy'){ const j=projectJSON(); (navigator.clipboard ? navigator.clipboard.writeText(j) : Promise.reject()).then(()=>toast('Projeto copiado')).catch(()=>modal({title:'Copiar projeto', text:'Selecione e copie o texto:', extra:`<textarea class="json" readonly>${esc(j)}</textarea>`, buttons:[{label:'Fechar',cls:'primary'}]})); }
   else if (act==='import') $('#fileIn').click();
   else if (act==='new') modal({title:'Começar novo projeto?', text:'Todos os cômodos deste aparelho serão apagados.', buttons:[{label:'Cancelar'},{label:'Apagar tudo',cls:'warn',onClick:()=>{ state.rooms=[]; state.selected=null; v3.dist=null; save(); refreshHome(); showScreen('home'); }}]});
 }
@@ -1201,62 +1916,93 @@ function onMenu(act){
    Exemplo
    ========================================================= */
 function loadDemo(){
-  const j = () => (Math.random()-0.5)*0.03;
-  const rect = (x0,z0,x1,z1) => [[x0+j(),z0+j()],[x1+j(),z0+j()],[x1+j(),z1+j()],[x0+j(),z1+j()]];
-  const demo = [
-    ['Sala de estar', [[0,0],[5.2,0],[5.2,4.1],[2.0,4.1],[2.0,4.9],[0,4.9]], 2.70],
-    ['Cozinha', rect(5.2,0,8.2,3.0), 2.70],
-    ['Corredor', rect(5.2,3.0,8.2,4.1), 2.70],
-    ['Quarto', [[0,4.9],[2.0,4.9],[2.0,4.1],[3.6,4.1],[3.6,8.2],[0,8.2]], 2.65],
-    ['Banheiro', rect(3.6,4.1,5.4,6.1), 2.40],
-    ['Suíte', rect(5.4,4.1,8.2,8.2), 2.65],
-    ['Área de serviço', rect(3.6,6.1,5.4,8.2), 2.40],
+  const j=()=>(Math.random()-0.5)*0.02;
+  const rect=(x0,z0,x1,z1)=>[[x0+j(),z0+j()],[x1+j(),z0+j()],[x1+j(),z1+j()],[x0+j(),z1+j()]];
+  const box=(x0,z0,x1,z1)=>[[x0,z0],[x1,z0],[x1,z1],[x0,z1]];
+  const it=(key,b,h)=>({key, name:FURN[key][0], pts:b, h: h||FURN[key][3]});
+  const demo=[
+    ['Sala de estar', [[0,0],[5.2,0],[5.2,4.1],[2.0,4.1],[2.0,4.9],[0,4.9]], 2.70, [{i:0,t0:0.15,t1:0.32,kind:'porta'},{i:1,t0:0.76,t1:0.97,kind:'passagem'}],
+      [it('sofa',box(0.15,3.95,1.85,4.8)), it('coffee table',box(0.55,2.9,1.55,3.5)), it('table',box(3.2,0.8,4.6,1.7)), it('chair',box(3.65,1.85,4.15,2.35)), it('television receiver',box(0.1,1.6,0.4,2.7))]],
+    ['Cozinha', rect(5.2,0,8.2,3.0), 2.70, [{i:2,t0:0.55,t1:0.85,kind:'passagem'}],
+      [it('refrigerator',box(7.45,0.05,8.15,0.75)), it('stove',box(6.6,0.05,7.2,0.65)), it('counter',box(5.25,0.05,6.6,0.65))]],
+    ['Corredor', rect(5.2,3.0,8.2,4.1), 2.70, [{i:3,t0:0.1,t1:0.9,kind:'passagem'},{i:0,t0:0.15,t1:0.45,kind:'passagem'},{i:2,t0:0.13,t1:0.4,kind:'porta'}], []],
+    ['Quarto', [[0,4.9],[2.0,4.9],[2.0,4.1],[3.6,4.1],[3.6,8.2],[0,8.2]], 2.65, [{i:0,t0:0.2,t1:0.65,kind:'porta'}],
+      [it('bed',box(0.1,6.2,1.5,8.1)), it('desk',box(2.4,7.5,3.5,8.1)), it('wardrobe',box(2.95,4.2,3.55,5.8))]],
+    ['Banheiro', rect(3.6,4.1,5.4,6.1), 2.40, [{i:3,t0:0.2,t1:0.6,kind:'porta'}], [it('toilet',box(4.8,4.2,5.3,4.9)), it('shower',box(4.45,5.15,5.35,6.05)), it('sink',box(3.65,5.4,4.25,6.0))]],
+    ['Suíte', rect(5.4,4.1,8.2,8.2), 2.65, [{i:0,t0:0.57,t1:0.857,kind:'porta'}], [it('bed',box(6.0,6.0,7.6,8.1)), it('wardrobe',box(5.45,4.6,6.05,6.2))]],
+    ['Área de serviço', rect(3.6,6.1,5.4,8.2), 2.40, [{i:3,t0:0.3,t1:0.7,kind:'porta'}], [it('washer',box(4.7,7.5,5.35,8.15))]],
   ];
-  state.rooms = demo.map(([name,pts,h],i)=>({ id:uid(), name, pts, height:h, color:COLORS[i%COLORS.length], mode:'demo' }));
-  state.selected = state.rooms[0].id; v3.dist=null; save(); openPlan(); refreshHome();
+  state.rooms=demo.map(([name,pts,h,doors,items],i)=>({ id:uid(), name, pts, height:h, color:COLORS[i%COLORS.length], mode:'demo', doors, items }));
+  state.selected=state.rooms[0].id; v3.dist=null; save(); openPlan(); refreshHome();
+}
+
+/* =========================================================
+   Teste da IA (abra o site com #teste-ia)
+   ========================================================= */
+async function aiSelfTest(){
+  modal({title:'Teste da IA', text:'Carregando o modelo…', buttons:[{label:'Fechar'}]});
+  try {
+    await loadAI();
+    const W=256, H=384, cv=document.createElement('canvas'); cv.width=W; cv.height=H; const ctx=cv.getContext('2d'), img=ctx.createImageData(W,H);
+    renderSimInto(img, W, H, simCamAt(0.3, -25*DEG, W, H)); ctx.putImageData(img,0,0);
+    const t0=performance.now(), seg=await segmentRGBA(ctx.getImageData(0,0,W,H).data, W, H, false), ms=Math.round(performance.now()-t0);
+    const cnt=[0,0,0,0,0,0,0]; seg.cat.forEach(c=>cnt[c]++); const tot=seg.cat.length, pc=c=>Math.round(cnt[c]/tot*100);
+    const msg=`OK · ${AI.device} · ${ms} ms por quadro · mapa ${seg.w}×${seg.h}\nchão ${pc(1)}% · parede ${pc(2)}% · porta ${pc(3)}% · teto ${pc(4)}% · móveis ${pc(5)}%`;
+    $('#mText').textContent=msg; console.log('AI_SELFTEST_OK', msg);
+  } catch(e){ $('#mText').textContent='Falhou: '+(e && e.message || e); console.log('AI_SELFTEST_FAIL', String(e && e.stack || e)); }
 }
 
 /* =========================================================
    Inicialização
    ========================================================= */
 function refreshHome(){
-  const n = state.rooms.length;
+  const n=state.rooms.length;
   $('#btnContinue').classList.toggle('hidden', !n);
-  $('#btnContinue').textContent = `Abrir projeto salvo (${n} cômodo${n===1?'':'s'})`;
+  $('#btnContinue').textContent=`Abrir projeto salvo (${n} cômodo${n===1?'':'s'})`;
+  document.querySelectorAll('#setMode button').forEach(b=>b.classList.toggle('on', b.dataset.v===state.settings.scanMode));
 }
 function init(){
   load();
-  $('#setHeight').value = Math.round(state.settings.phoneHeight*100);
-  $('#setForce').checked = !!state.settings.forceSensor;
+  $('#setHeight').value=Math.round(state.settings.phoneHeight*100);
+  $('#setForce').checked=!!state.settings.forceSensor;
   refreshHome(); detect();
-  $('#setHeight').addEventListener('change', e=>{ const v=parseNum(e.target.value); if(v>=60&&v<=220){ state.settings.phoneHeight=v/100; save(); } else { e.target.value=Math.round(state.settings.phoneHeight*100); toast('Use um valor entre 60 e 220 cm'); } });
+  $('#setHeight').addEventListener('change', e=>{ const v=parseNum(e.target.value); if (v>=60&&v<=220){ state.settings.phoneHeight=v/100; save(); } else { e.target.value=Math.round(state.settings.phoneHeight*100); toast('Use um valor entre 60 e 220 cm'); } });
   $('#setForce').addEventListener('change', e=>{ state.settings.forceSensor=e.target.checked; save(); });
+  $('#setMode').addEventListener('click', e=>{ const b=e.target.closest('button'); if (!b) return; state.settings.scanMode=b.dataset.v; save(); refreshHome(); });
   $('#btnStart').addEventListener('click', startScan);
+  $('#btnSim').addEventListener('click', startSim);
   $('#btnContinue').addEventListener('click', openPlan);
   $('#btnDemo').addEventListener('click', loadDemo);
   $('#btnMark').addEventListener('click', onMark);
   $('#btnClose').addEventListener('click', onCloseBtn);
   $('#btnUndo').addEventListener('click', onUndo);
   $('#btnExit').addEventListener('click', exitScan);
-  $('#btnNext').addEventListener('click', ()=>{ resetRoom(); });
+  $('#btnSeg').addEventListener('click', ()=>{ state.settings.showSeg=!state.settings.showSeg; save(); updateScanUI(); });
+  $('#btnNext').addEventListener('click', ()=>{ if (scan.mode==='sim') { scan.sim.t0=performance.now(); scan.sim.done=false; scan.sim.tPaused=0; } resetRoom(); });
   $('#btnFinish').addEventListener('click', ()=>{ stopScan(); goAfterScan(); });
   $('#btnTipsOk').addEventListener('click', ()=>$('#scanTips').classList.add('hidden'));
+  $('#btnRetryAI').addEventListener('click', ()=>{ loadAI().catch(()=>{}); });
+  $('#btnUseManual').addEventListener('click', ()=>{ scan.kind='manual'; $('#aiLoad').classList.add('hidden'); resetRoom(); tipsShown={}; showTips(); });
   $('#btnErrBack').addEventListener('click', ()=>{ $('#scanErr').classList.add('hidden'); goAfterScan(); });
-  $('#btnErrDemo').addEventListener('click', ()=>{ $('#scanErr').classList.add('hidden'); loadDemo(); });
-  $('#roomName').addEventListener('keydown', e=>{ if(e.key==='Enter') e.target.blur(); });
+  $('#btnErrSim').addEventListener('click', ()=>{ $('#scanErr').classList.add('hidden'); startSim(); });
+  $('#roomName').addEventListener('input', ()=>{ scan.nameDirty=true; });
+  $('#roomName').addEventListener('keydown', e=>{ if (e.key==='Enter') e.target.blur(); });
   $('#btnHome').addEventListener('click', ()=>{ refreshHome(); showScreen('home'); });
   $('#tab2d').addEventListener('click', ()=>setView('2d'));
   $('#tab3d').addEventListener('click', ()=>setView('3d'));
+  $('#btnFurn').addEventListener('click', ()=>{ state.settings.showFurn=!state.settings.showFurn; save(); setView(state.view); });
   $('#btnReset3d').addEventListener('click', ()=>{ v3.yaw=-0.65; v3.pitch=0.78; v3.dist=null; render3D(); });
   $('#btnMenu').addEventListener('click', e=>{ e.stopPropagation(); $('#menu').classList.toggle('hidden'); });
-  $('#menu').addEventListener('click', e=>{ const b=e.target.closest('[data-act]'); if(b) onMenu(b.dataset.act); });
-  document.addEventListener('click', e=>{ if(!e.target.closest('#menu') && !e.target.closest('#btnMenu')) $('#menu').classList.add('hidden'); });
-  $('#fileIn').addEventListener('change', e=>{ const f=e.target.files[0]; if(!f) return; f.text().then(importJSON); e.target.value=''; });
+  $('#menu').addEventListener('click', e=>{ const b=e.target.closest('[data-act]'); if (b) onMenu(b.dataset.act); });
+  document.addEventListener('click', e=>{ if (!e.target.closest('#menu') && !e.target.closest('#btnMenu')) $('#menu').classList.add('hidden'); });
+  $('#fileIn').addEventListener('change', e=>{ const f=e.target.files[0]; if (!f) return; f.text().then(importJSON); e.target.value=''; });
   $('#btnEmptyScan').addEventListener('click', startScan);
   $('.side').addEventListener('click', onSideClick);
   initDrag(); init3D();
   addEventListener('resize', ()=>{ if ($('#plan').classList.contains('active')) renderView(); });
   if (location.hash==='#exemplo') loadDemo();
+  if (location.hash==='#simulacao') startSim();
+  if (location.hash==='#teste-ia') aiSelfTest();
 }
 init();
 </script>
